@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
@@ -11,6 +12,89 @@ class Register extends StatefulWidget {
 }
 
 class _RegisterState extends State<Register> {
+
+  Future<void> registerWithEmailPassword(String email, String password, BuildContext context) async {
+    try {
+      final UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      // Rejestracja zakończona sukcesem, wysyłamy email weryfikacyjny
+      if (userCredential.user != null && !userCredential.user!.emailVerified) {
+        await userCredential.user!.sendEmailVerification();
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pomyślnie utworzono konto\nZweryfikuj adres email aby się zalogować.')));
+
+        // Dodajemy opóźnienie, aby użytkownik mógł przeczytać komunikat
+        await Future.delayed(Duration(seconds: 3));
+
+        // Używamy Navigatora do powrotu do poprzedniego ekranu
+        Navigator.of(context).pop();
+      }
+      // Przekieruj do strony informującej o konieczności weryfikacji email lub do ekranu logowania
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hasło jest za słabe.')));
+      } else if (e.code == 'email-already-in-use') {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ten adres email jest już powiązany z innym kontem.')));
+      }
+      return;
+    } catch (e) {
+      debugPrint(e.toString());
+      return;
+    }
+  }
+
+  TextEditingController username = TextEditingController();
+  bool warningUsername = false;
+  TextEditingController email = TextEditingController();
+  bool warningEmail = false;
+  TextEditingController password = TextEditingController();
+  bool warningPassword = false;
+  bool hidePassword = true;
+
+  void resetUsername(){
+    setState(() {warningUsername = false;});
+  }
+  void resetEmail(){
+    setState(() {warningEmail = false;});
+  }
+  void resetPassword(){
+    setState(() {warningPassword = false;});
+  }
+
+
+  @override
+  void initState() {
+    username.addListener(resetUsername);
+    email.addListener(resetEmail);
+    password.addListener(resetPassword);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    username.dispose();
+    username.removeListener(resetUsername);
+    email.removeListener(resetEmail);
+    password.removeListener(resetPassword);
+    super.dispose();
+  }
+
+  bool validateRegistration(){
+    setState(() {
+      // checking username
+      warningUsername = username.text.isEmpty;
+      // checking email
+      RegExp emailRegex = RegExp(r'^.+@.+\..+$');
+      warningEmail = !(emailRegex.hasMatch(email.text) && email.text.length >= 6);
+      // checking password
+      warningPassword = !(password.text.length >= 6);
+    });
+    // odwracam (jesli wszystkie to false to znaczy że po zamianie są wszystkei true to jest poprawnie)
+    bool isFormValid = !warningUsername && !warningEmail && !warningPassword;
+    return isFormValid;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,7 +147,10 @@ class _RegisterState extends State<Register> {
                       child: Container(
                         height: 60,
                         child: TextFormField(
+                          controller: username,
+                          maxLength: 30,
                           decoration: InputDecoration(
+                            counterText: "",
                             fillColor: Color(0xff2E2E2E),
                             filled: true,
                             contentPadding: EdgeInsets.only(
@@ -110,6 +197,16 @@ class _RegisterState extends State<Register> {
                     )
                   ],
                 ),
+                if(warningUsername)
+                  SizedBox(height: 10),
+                if(warningUsername)
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      '* Nazwa użytkownika nie może być pusta.',
+                      style: TextStyle(color: Colors.red, fontSize: 16),
+                    ),
+                  ),
                 SizedBox(height: 30),
                 Padding(
                   padding: const EdgeInsets.only(left: 10.0),
@@ -135,7 +232,10 @@ class _RegisterState extends State<Register> {
                       child: Container(
                         height: 60,
                         child: TextFormField(
+                          controller: email,
+                          maxLength: 30,
                           decoration: InputDecoration(
+                            counterText: "",
                             fillColor: Color(0xff2E2E2E),
                             filled: true,
                             contentPadding: EdgeInsets.only(
@@ -182,6 +282,16 @@ class _RegisterState extends State<Register> {
                     )
                   ],
                 ),
+                if(warningEmail)
+                  SizedBox(height: 10),
+                if(warningEmail)
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      '* Email musi zawierać co najmniej 6 znaków, kropkę i @.',
+                      style: TextStyle(color: Colors.red, fontSize: 16),
+                    ),
+                  ),
                 SizedBox(height: 30),
                 Padding(
                   padding: const EdgeInsets.only(left: 10.0),
@@ -206,36 +316,47 @@ class _RegisterState extends State<Register> {
                       padding: const EdgeInsets.only(left: 5.0),
                       child: Container(
                         height: 60,
-                        child: TextFormField(
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            fillColor: Color(0xff2E2E2E),
-                            filled: true,
-                            contentPadding: EdgeInsets.only(
-                                left: 75, right: 10, top: 21, bottom: 21),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide(
-                                  width: 2, color: Color(0xffE76151)),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                          border: Border.all(width: 2, color: Color(0xffE76151))
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: password,
+                                maxLength: 30,
+                                obscureText: hidePassword,
+                                decoration: InputDecoration(
+                                  counterText: "",
+                                  fillColor: Color(0xff2E2E2E),
+                                  filled: true,
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.only(
+                                      left: 75, right: 10, top: 21, bottom: 21),
+                                ),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontFamily: 'Jaapokki',
+                                    letterSpacing: 2),
+                              ),
                             ),
-                            enabledBorder: OutlineInputBorder(
-                              // Gdy pole tekstowe jest dostępne, ale nie ma focusa
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide(
-                                  width: 2, color: Color(0xffE76151)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              // Gdy pole tekstowe jest zaznaczone (ma focus)
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide(
-                                  width: 2, color: Color(0xffE76151)),
-                            ),
-                          ),
-                          style: TextStyle(
+                            IconButton(
                               color: Colors.white,
-                              fontSize: 18,
-                              fontFamily: 'Jaapokki',
-                              letterSpacing: 2),
+                              iconSize: 25,
+                              icon: Icon(
+                                hidePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  hidePassword = !hidePassword;
+                                });
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -255,11 +376,25 @@ class _RegisterState extends State<Register> {
                     )
                   ],
                 ),
-                SizedBox(height: 60),
+                if(warningPassword)
+                  SizedBox(height: 10),
+                if(warningPassword)
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      '* Hasło musi zawierać co najmniej 6 znaków.',
+                      style: TextStyle(color: Colors.red, fontSize: 16),
+                    ),
+                  ),
+                SizedBox(height: 50),
                 MyElevatedButton(
                   width: double.infinity,
                   height: 60,
-                  onPressed: () {},
+                  onPressed: () {
+                    if(validateRegistration()){
+                      registerWithEmailPassword(email.text, password.text, context);
+                    };
+                  },
                   borderRadius: BorderRadius.circular(25),
                   child: Text(
                     'STWÓRZ!',
@@ -287,6 +422,7 @@ class _RegisterState extends State<Register> {
                     ),
                   ),
                 ),
+                SizedBox(height: 10),
               ],
             ),
           ),

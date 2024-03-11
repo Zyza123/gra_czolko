@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "765023489743",
+    "project_id": "czolko-c4589",
+    "storage_bucket": "czolko-c4589.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:765023489743:android:e88daa443f51eed1edf1ba",
+        "android_client_info": {
+          "package_name": "com.example.gra_czolko"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfZasangSUw-axv7Q7YNrCUCeL_dz-3xA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
