@@ -19,9 +19,11 @@ class _LoginState extends State<Login> {
 
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController resetEmailController = TextEditingController();
   bool remember_me = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool showSignAnimation = false;
+  bool hidePassword = true;
 
   Future<void> signInWithEmailPassword() async {
     String email = emailController.text;
@@ -75,6 +77,27 @@ class _LoginState extends State<Login> {
       setState(() {
         showSignAnimation = false; // Ukryj animację po zakończeniu procesu
       });
+    }
+  }
+
+  Future<void> resetPassword() async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: resetEmailController.text.trim(),
+      );
+      if(mounted){
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(
+              'Wysłano dane na wpisany email.')),);
+      }
+      // Tutaj możesz dodać nawigację do innej strony po pomyślnym zalogowaniu
+    } catch (e) {
+        if(mounted){
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text(
+                'Niepoprawne dane.')),);
+        }
+      // Tutaj możesz wyświetlić komunikat dla użytkownika informujący o błędzie logowania
     }
   }
 
@@ -209,37 +232,45 @@ class _LoginState extends State<Login> {
                           padding: const EdgeInsets.only(left: 5.0),
                           child: Container(
                             height: 60,
-                            child: TextFormField(
-                              controller: passwordController,
-                              obscureText: true,
-                              decoration: InputDecoration(
-                                fillColor: Color(0xff2E2E2E),
-                                filled: true,
-                                contentPadding: EdgeInsets.only(
-                                    left: 75, right: 10, top: 21, bottom: 21),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(
-                                      width: 2, color: Color(0xffE76151)),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(width: 2, color: Color(0xffE76151))
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: passwordController,
+                                    obscureText: hidePassword,
+                                    decoration: InputDecoration(
+                                      fillColor: Color(0xff2E2E2E),
+                                      filled: true,
+                                      contentPadding: EdgeInsets.only(
+                                          left: 75, right: 10, top: 21, bottom: 21),
+                                      border: InputBorder.none,
+                                    ),
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontFamily: 'Jaapokki',
+                                        letterSpacing: 2),
+                                  ),
                                 ),
-                                enabledBorder: OutlineInputBorder(
-                                  // Gdy pole tekstowe jest dostępne, ale nie ma focusa
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(
-                                      width: 2, color: Color(0xffE76151)),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  // Gdy pole tekstowe jest zaznaczone (ma focus)
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(
-                                      width: 2, color: Color(0xffE76151)),
-                                ),
-                              ),
-                              style: TextStyle(
+                                IconButton(
                                   color: Colors.white,
-                                  fontSize: 18,
-                                  fontFamily: 'Jaapokki',
-                                  letterSpacing: 2),
+                                  iconSize: 25,
+                                  icon: Icon(
+                                    hidePassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      hidePassword = !hidePassword;
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -264,14 +295,91 @@ class _LoginState extends State<Login> {
                     ),
                     Align(
                       alignment: Alignment.topRight,
-                      child: Text(
-                        'Nie pamiętam hasła',
-                        style: TextStyle(
-                            fontFamily: 'Jaapokki',
-                            fontSize: 21,
-                            color: Colors.white),
+                      child: GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                backgroundColor: Color(0xff28282B), // Tło dialogu
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: EdgeInsets.zero, // Zminimalizowanie przestrzeni wokół obrazu
+                                      child: Image.asset(
+                                        "assets/login_panels/power.png",
+                                        // Możesz także użyć fit, aby kontrolować, jak obraz ma się dopasować
+                                        // fit: BoxFit.cover, // na przykład
+                                      ),
+                                    ),
+                                    SizedBox(height: 15,),
+                                    Text(
+                                      'Podaj adres email do zresetowania hasła:',
+                                      style: TextStyle(color: Colors.white, fontSize: 16,), // Biała czcionka
+                                    ),
+                                    SizedBox(height: 15,),
+                                    TextField(
+                                      controller: resetEmailController,
+                                      keyboardType: TextInputType.emailAddress,
+                                      decoration: InputDecoration(
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Color(0xFFE76151), width: 2.0),
+                                          // Dodaj wybrany kolor podświetlenia
+                                          borderRadius: BorderRadius.circular(15.0),
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                                      ),
+                                      style: TextStyle(fontSize: 16,color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                                actions: <Widget>[
+                                  Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      TextButton(
+                                        onPressed: (){
+                                          Navigator.pop(
+                                              context);
+                                        },
+                                        child: Text(
+                                          'Anuluj',
+                                          style: TextStyle(color: Colors.white,fontSize: 16),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          await resetPassword();
+                                          Navigator.pop(
+                                              context);
+                                        },
+                                        child: GradientText(
+                                          'Wyślij',
+                                          style: TextStyle(fontSize: 16),
+                                          colors: [Color(0xffD613E7), Color(0xffED8022)], // Biała czzionka dla przycisku
+                                        ),
+                                      ),
+
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        child: Text(
+                          'Nie pamiętam hasła',
+                          style: TextStyle(
+                              fontFamily: 'Jaapokki',
+                              fontSize: 21,
+                              color: Colors.white
+                          ),
+                        ),
                       ),
                     ),
+
                     SizedBox(height: 50),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,

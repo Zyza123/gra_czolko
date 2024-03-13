@@ -72,6 +72,7 @@ flutter:
     - assets/login_panels/start_graph.png
     - assets/login_panels/google.png
     - assets/login_panels/accept.png
+    - assets/login_panels/power.png
     - assets/animations/anim_login.json
 
   # An image asset can refer to one or more resolution-specific "variants", see

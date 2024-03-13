@@ -493,7 +493,7 @@ class _RegisterState extends State<Register> {
                         SizedBox(height: 15), // Zmniejszony odstęp między obrazem a tekstem
                         Text(
                           'Pomyślnie utworzono konto ! Zweryfikuj adres email aby się zalogować.',
-                          style: TextStyle(color: Colors.white, fontSize: 20), // Biała czcionka
+                          style: TextStyle(color: Colors.white, fontSize:18), // Biała czcionka
                         ),
                       ],
                     ),
@@ -508,7 +508,7 @@ class _RegisterState extends State<Register> {
                           },
                           child: GradientText(
                             'Jasne !',
-                            style: TextStyle(color: Colors.white,fontSize: 22),
+                            style: TextStyle(color: Colors.white,fontSize: 20),
                             colors: [Color(0xffD613E7), Color(0xffED8022)], // Biała czzionka dla przycisku
                           ),
                         ),
