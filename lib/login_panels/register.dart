@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lottie/lottie.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import '../widgets/myElevatedButton.dart';
@@ -55,6 +56,7 @@ class _RegisterState extends State<Register> {
       //ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pomyślnie utworzono konto\nZweryfikuj adres email aby się zalogować.')));
     }
   }
+
 
   void resetUsername(){
     setState(() {warningUsername = false;});
@@ -475,26 +477,44 @@ class _RegisterState extends State<Register> {
                 color: Color(0x80000000),
                 child: Center(
                   child: AlertDialog(
-                    backgroundColor: Colors.black, // Tło dialogu
-                    content: Text(
-                      'Pomyślnie utworzono konto\nZweryfikuj adres email aby się zalogować.',
-                      style: TextStyle(color: Colors.white), // Biała czcionka
+                    backgroundColor: Color(0xff100c08), // Tło dialogu
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        SizedBox(height: 15),
+                        Padding(
+                          padding: EdgeInsets.zero, // Zminimalizowanie przestrzeni wokół obrazu
+                          child: Image.asset(
+                            "assets/login_panels/accept.png",
+                            // Możesz także użyć fit, aby kontrolować, jak obraz ma się dopasować
+                            // fit: BoxFit.cover, // na przykład
+                          ),
+                        ),
+                        SizedBox(height: 15), // Zmniejszony odstęp między obrazem a tekstem
+                        Text(
+                          'Pomyślnie utworzono konto ! Zweryfikuj adres email aby się zalogować.',
+                          style: TextStyle(color: Colors.white, fontSize: 20), // Biała czcionka
+                        ),
+                      ],
                     ),
                     actions: <Widget>[
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(); // Zamknięcie dialogu
-                          setState(() {
-                            showFinalInfo = false; // Ukrycie ciemnego tła
-                          });
-                        },
-                        child: Text(
-                          'OK',
-                          style: TextStyle(color: Colors.white), // Biała czcionka dla przycisku
+                      Center( // Wyśrodkowanie przycisku w poziomie
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Zamknięcie dialogu
+                            setState(() {
+                              showFinalInfo = false; // Ukrycie ciemnego tła
+                            });
+                          },
+                          child: GradientText(
+                            'Jasne !',
+                            style: TextStyle(color: Colors.white,fontSize: 22),
+                            colors: [Color(0xffD613E7), Color(0xffED8022)], // Biała czzionka dla przycisku
+                          ),
                         ),
                       ),
                     ],
-                  ),// Tutaj wywołujemy funkcję pokazującą dialog
+                  )
                 ),
               ),
             )

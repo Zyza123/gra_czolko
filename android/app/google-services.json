@@ -12,7 +12,20 @@
           "package_name": "com.example.gra_czolko"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "765023489743-m7r9vu2m49true15r142rsue35mpvhr0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.gra_czolko",
+            "certificate_hash": "8c40ee5a16663a205f0083d22aa4d0c5cea958e9"
+          }
+        },
+        {
+          "client_id": "765023489743-r9ns25i42n4f9rqobp2igcsrbu3srcv1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDfZasangSUw-axv7Q7YNrCUCeL_dz-3xA"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "765023489743-r9ns25i42n4f9rqobp2igcsrbu3srcv1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
