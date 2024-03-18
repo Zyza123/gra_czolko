@@ -5,7 +5,7 @@ import 'package:lottie/lottie.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../user_panels/home_panel.dart';
+import '../user_panels/screens_panel.dart';
 import '/login_panels/register.dart';
 import 'package:flutter/material.dart';
 import 'package:gra_czolko/login_panels/register.dart';
@@ -86,7 +86,7 @@ class _StartPageState extends State<StartPage> {
         // Użytkownik zalogowany i potwierdzony
         if(mounted) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomePanel()), // Przejście do Home
+            MaterialPageRoute(builder: (context) => const ScreensPanel()), // Przejście do Home
           );
         }
       }
@@ -285,7 +285,7 @@ class _StartPageState extends State<StartPage> {
                             final User? user = await signInWithGoogle();
                             if (user != null) {
                               // Następuje przekierowanie do ekranu głównego aplikacji
-                              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomePanel()));
+                              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => ScreensPanel()));
                             }
                           },
                         child: Row(

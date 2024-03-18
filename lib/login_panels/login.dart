@@ -5,7 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
-import '../user_panels/home_panel.dart';
+import '../user_panels/screens_panel.dart';
 import '../widgets/myElevatedButton.dart';
 
 class Login extends StatefulWidget {
@@ -54,7 +54,7 @@ class _LoginState extends State<Login> {
             await prefs.setString('password', password);
           }
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomePanel()), // Przejście do Home
+            MaterialPageRoute(builder: (context) => const ScreensPanel()), // Przejście do Home
           );
         }
       }
