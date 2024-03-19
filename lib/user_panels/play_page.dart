@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class PlayPage extends StatefulWidget {
-  const PlayPage({super.key});
+  final String uid;
+  const PlayPage({super.key, required this.uid});
 
   @override
   State<PlayPage> createState() => _PlayPageState();

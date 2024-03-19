@@ -85,9 +85,12 @@ class _StartPageState extends State<StartPage> {
       } else {
         // Użytkownik zalogowany i potwierdzony
         if(mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const ScreensPanel()), // Przejście do Home
-          );
+          String? uid = user?.uid;
+          if (uid != null) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => ScreensPanel(uid: user!.uid!)), // używamy operatora wykrzyknika, ponieważ już sprawdziliśmy, że uid nie jest null
+            );
+          }
         }
       }
     } on FirebaseAuthException catch (e) {
@@ -281,13 +284,18 @@ class _StartPageState extends State<StartPage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
-                          onPressed: () async {
-                            final User? user = await signInWithGoogle();
-                            if (user != null) {
-                              // Następuje przekierowanie do ekranu głównego aplikacji
-                              Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => ScreensPanel()));
+                        onPressed: () async {
+                          final User? user = await signInWithGoogle();
+                          if (user != null && user.email != null) {
+                            // Bezpośrednie przekazanie user.email do ScreensPanel, ponieważ już sprawdziliśmy, że nie jest null
+                            String? uid = user?.uid;
+                            if (uid != null) {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (context) => ScreensPanel(uid: user!.uid!)), // używamy operatora wykrzyknika, ponieważ już sprawdziliśmy, że uid nie jest null
+                              );
                             }
-                          },
+                          }
+                        },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

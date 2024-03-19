@@ -53,9 +53,12 @@ class _LoginState extends State<Login> {
             await prefs.setString('email', email);
             await prefs.setString('password', password);
           }
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const ScreensPanel()), // Przejście do Home
-          );
+          String? uid = user?.uid;
+          if (uid != null) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => ScreensPanel(uid: user!.uid!)), // używamy operatora wykrzyknika, ponieważ już sprawdziliśmy, że uid nie jest null
+            );
+          }
         }
       }
     } on FirebaseAuthException catch (e) {

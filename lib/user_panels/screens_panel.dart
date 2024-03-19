@@ -6,7 +6,9 @@ import 'package:gra_czolko/user_panels/profile_page.dart';
 import 'home_page.dart';
 
 class ScreensPanel extends StatefulWidget {
-  const ScreensPanel({super.key});
+  final String uid;
+  const ScreensPanel({super.key, required this.uid});
+
 
   @override
   State<ScreensPanel> createState() => _ScreensPanelState();
@@ -20,9 +22,9 @@ class _ScreensPanelState extends State<ScreensPanel> {
   @override
   void initState() {
     _screens = [
-      const HomePage(),
-      const PlayPage(),
-      const ProfilePage(),
+      HomePage(uid: widget.uid,),
+      PlayPage(uid: widget.uid,),
+      ProfilePage(uid: widget.uid,),
     ];
     super.initState();
   }
@@ -30,7 +32,7 @@ class _ScreensPanelState extends State<ScreensPanel> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xff2E2E2E),
+      backgroundColor: const Color(0xff2E2E2E),
       body: SafeArea(
         child: IndexedStack(
           index: currentIndex,
@@ -58,7 +60,7 @@ class _ScreensPanelState extends State<ScreensPanel> {
             },
             tabs: const [
               GButton(
-                icon: Icons.home_filled,
+                icon: Icons.home,
                 text: 'Dom',
                 textStyle: TextStyle(fontSize: 20,),
               ),

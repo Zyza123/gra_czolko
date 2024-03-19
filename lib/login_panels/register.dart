@@ -38,7 +38,7 @@ class _RegisterState extends State<Register> {
       );
       if (userCredential.user != null && !userCredential.user!.emailVerified) {
         await userCredential.user!.sendEmailVerification();
-        await addDataToFirestore();
+        await addDataToFirestore(userCredential.user!);
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
@@ -68,22 +68,21 @@ class _RegisterState extends State<Register> {
     setState(() {warningPassword = false;});
   }
 
-  Future<void> addDataToFirestore() async {
+  Future<void> addDataToFirestore(User user) async {
     // Ustalamy ścieżkę do dokumentu nadrzędnego
-    String path = email.text;
     try {
       // Tworzymy dokument nadrzędny, jeśli nie istnieje
-      await users.doc(path).set({"exists": true});
+      await users.doc(user.uid).set({"exists": true});
 
       // Tworzymy lub aktualizujemy poddokument "account" w dokumencie nadrzędnym
-      await users.doc(path).collection('account').doc('account').set({
+      await users.doc(user.uid).collection('account').doc('account').set({
         "username": username.text,
         "email": email.text,
         "password": password.text,
         "theme": "dark",
       });
-      await users.doc(path).collection('favorite').doc('favorite').set({});
-      await users.doc(path).collection('created').doc('created').set({});
+      await users.doc(user.uid).collection('favorite').doc('favorite').set({});
+      await users.doc(user.uid).collection('created').doc('created').set({});
 
       print("Dane zostały pomyślnie zapisane do Firestore.");
     } catch (e) {
