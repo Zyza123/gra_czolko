@@ -1,30 +1,58 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:gra_czolko/user_panels/play_page.dart';
 import 'package:gra_czolko/user_panels/profile_page.dart';
-
 import 'home_page.dart';
 
-class ScreensPanel extends StatefulWidget {
-  final String uid;
-  const ScreensPanel({super.key, required this.uid});
+class ScreensPanel extends ConsumerStatefulWidget {
+  const ScreensPanel({super.key});
 
 
   @override
-  State<ScreensPanel> createState() => _ScreensPanelState();
+  ConsumerState<ScreensPanel> createState() => _ScreensPanelState();
 }
 
-class _ScreensPanelState extends State<ScreensPanel> {
+final userDataProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, uid) async {
+  CollectionReference users = FirebaseFirestore.instance.collection('users');
+  DocumentReference<Object?> user = users.doc(uid).collection('account').doc('account');
+  final docSnapshot = await user.get();
+
+  if (docSnapshot.exists) {
+    return docSnapshot.data() as Map<String, dynamic>;
+  } else {
+    // Zwracamy pusty obiekt, jeśli dokument nie istnieje.
+    return {};
+  }
+});
+
+final baseDataProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, uid) async {
+  CollectionReference base =  FirebaseFirestore.instance.collection('baza');
+  DocumentReference<Object?> baseDoc = base.doc("test");
+  final docSnapshot = await baseDoc.get();
+
+  if (docSnapshot.exists) {
+    return docSnapshot.data() as Map<String, dynamic>;
+  } else {
+    // Zwracamy pusty obiekt, jeśli dokument nie istnieje.
+    return {};
+  }
+});
+
+class _ScreensPanelState extends ConsumerState<ScreensPanel> {
 
   int currentIndex = 0;
   late final List<Widget> _screens;
 
+
+
   @override
   void initState() {
     _screens = [
-      HomePage(uid: widget.uid,),
-      PlayPage(uid: widget.uid,),
-      ProfilePage(uid: widget.uid,),
+      HomePage(),
+      PlayPage(),
+      ProfilePage(),
     ];
     super.initState();
   }

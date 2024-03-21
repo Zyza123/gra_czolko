@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lottie/lottie.dart';
 import 'package:page_transition/page_transition.dart';
@@ -13,7 +14,7 @@ import '../widgets/myElevatedButton.dart';
 import '/login_panels/login.dart';
 import 'package:flutter/gestures.dart';
 
-class StartPage extends StatefulWidget {
+class StartPage extends ConsumerStatefulWidget {
   const StartPage({super.key});
 
   @override
@@ -31,7 +32,19 @@ GoogleSignIn _googleSignIn = GoogleSignIn(
   scopes: scopes,
 );
 
-class _StartPageState extends State<StartPage> {
+class UIDNotifier extends StateNotifier<String?> {
+  UIDNotifier() : super(null);
+
+  void setUID(String uid) {
+    state = uid;
+  }
+}
+
+final uidProvider = StateNotifierProvider<UIDNotifier, String?>((ref) {
+  return UIDNotifier();
+});
+
+class _StartPageState extends ConsumerState<StartPage> {
 
   late TapGestureRecognizer _registerTapRecognizer;
   late CollectionReference users;
@@ -87,8 +100,9 @@ class _StartPageState extends State<StartPage> {
         if(mounted) {
           String? uid = user?.uid;
           if (uid != null) {
+            ref.read(uidProvider.notifier).setUID(user!.uid);
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => ScreensPanel(uid: user!.uid!)), // używamy operatora wykrzyknika, ponieważ już sprawdziliśmy, że uid nie jest null
+              MaterialPageRoute(builder: (context) => ScreensPanel()), // używamy operatora wykrzyknika, ponieważ już sprawdziliśmy, że uid nie jest null
             );
           }
         }
@@ -291,7 +305,7 @@ class _StartPageState extends State<StartPage> {
                             String? uid = user?.uid;
                             if (uid != null) {
                               Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(builder: (context) => ScreensPanel(uid: user!.uid!)), // używamy operatora wykrzyknika, ponieważ już sprawdziliśmy, że uid nie jest null
+                                MaterialPageRoute(builder: (context) => ScreensPanel()), // używamy operatora wykrzyknika, ponieważ już sprawdziliśmy, że uid nie jest null
                               );
                             }
                           }

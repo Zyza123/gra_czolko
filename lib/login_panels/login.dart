@@ -1,21 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:gra_czolko/login_panels/start.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import '../user_panels/screens_panel.dart';
 import '../widgets/myElevatedButton.dart';
 
-class Login extends StatefulWidget {
+class Login extends ConsumerStatefulWidget {
   const Login({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  ConsumerState<Login> createState() => _LoginState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginState extends ConsumerState<Login> {
 
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -55,8 +57,9 @@ class _LoginState extends State<Login> {
           }
           String? uid = user?.uid;
           if (uid != null) {
+            ref.read(uidProvider.notifier).setUID(user!.uid);
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => ScreensPanel(uid: user!.uid!)), // używamy operatora wykrzyknika, ponieważ już sprawdziliśmy, że uid nie jest null
+              MaterialPageRoute(builder: (context) => ScreensPanel()), // używamy operatora wykrzyknika, ponieważ już sprawdziliśmy, że uid nie jest null
             );
           }
         }
