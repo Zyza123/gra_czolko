@@ -23,7 +23,6 @@ class _LoginState extends ConsumerState<Login> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController resetEmailController = TextEditingController();
   bool remember_me = false;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   bool showSignAnimation = false;
   bool hidePassword = true;
 
@@ -34,9 +33,10 @@ class _LoginState extends ConsumerState<Login> {
       showSignAnimation = true; // Pokaż animację
     });
     try {
-      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
+      final firebaseAuth = ref.read(firebaseAuthProvider);
+      final UserCredential userCredential = await firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
       final User? user = userCredential.user;
 
@@ -88,7 +88,8 @@ class _LoginState extends ConsumerState<Login> {
 
   Future<void> resetPassword() async {
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
+      final firebaseAuth = ref.read(firebaseAuthProvider);
+      await firebaseAuth.sendPasswordResetEmail(
         email: resetEmailController.text.trim(),
       );
       if(mounted){

@@ -44,6 +44,18 @@ final uidProvider = StateNotifierProvider<UIDNotifier, String?>((ref) {
   return UIDNotifier();
 });
 
+final authStateChangesProvider = StreamProvider.autoDispose<User?>((ref) {
+  // get FirebaseAuth from the provider below
+  final firebaseAuth = ref.watch(firebaseAuthProvider);
+  // call a method that returns a Stream<User?>
+  return firebaseAuth.authStateChanges();
+});
+
+// provider to access the FirebaseAuth instance
+final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
+  return FirebaseAuth.instance;
+});
+
 class _StartPageState extends ConsumerState<StartPage> {
 
   late TapGestureRecognizer _registerTapRecognizer;
@@ -58,9 +70,6 @@ class _StartPageState extends ConsumerState<StartPage> {
   void initState() {
     _loadRememberMe();
     users = FirebaseFirestore.instance.collection('users');
-    _auth.authStateChanges().listen((event) {setState(() {
-      _user = event;
-    });});
     super.initState();
    _registerTapRecognizer = TapGestureRecognizer()
      ..onTap = () {
@@ -82,7 +91,8 @@ class _StartPageState extends ConsumerState<StartPage> {
       showSignAnimation = true; // Pokaż animację
     });
     try {
-      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final firebaseAuth = ref.read(firebaseAuthProvider);
+      final UserCredential userCredential = await firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -162,7 +172,7 @@ class _StartPageState extends ConsumerState<StartPage> {
     }
   }
 
-  Future<User?> signInWithGoogle() async {
+  Future<void> signInWithGoogle() async {
     setState(() {
       showSignAnimation = true; // Pokaż animację
     });
@@ -170,40 +180,41 @@ class _StartPageState extends ConsumerState<StartPage> {
     try {
       final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
       if (googleSignInAccount != null) {
-        final GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount
-            .authentication;
+        final GoogleSignInAuthentication googleSignInAuthentication = await googleSignInAccount.authentication;
 
         final OAuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleSignInAuthentication.accessToken,
           idToken: googleSignInAuthentication.idToken,
         );
 
-        final UserCredential userCredential = await _auth.signInWithCredential(
-            credential);
+        final FirebaseAuth firebaseAuth = ref.read(firebaseAuthProvider);
+        final UserCredential userCredential = await firebaseAuth.signInWithCredential(credential);
         final User? user = userCredential.user;
 
         // W tym punkcie, jeśli użytkownik nie jest null, oznacza to, że logowanie się powiodło.
         if (user != null) {
-          print("Logowanie przez Google się powiodło: ${user.uid}");
-          // Tutaj masz dostęp do emaila użytkownika
+          // Tutaj możesz dodać użytkownika do Firestore, jeśli potrzebujesz
           String? email = user.email;
           if (email != null) {
-            await addDataToFirestore(email);
-            return user;
+            await addDataToFirestore(email); // Upewnij się, że ta funkcja jest zdefiniowana i działa poprawnie
           }
+          // Aktualizacja UID w providerze
+          ref.read(uidProvider.notifier).setUID(user.uid);
+          // Przekierowanie do kolejnego ekranu
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => ScreensPanel()),
+          );
         }
       }
     } catch (error) {
       print(error);
-      return null;
-    }
-    finally {
+    } finally {
       setState(() {
         showSignAnimation = false; // Ukryj animację po zakończeniu procesu
       });
     }
-    return null;
   }
+
 
   @override
   void dispose() {
@@ -214,6 +225,11 @@ class _StartPageState extends ConsumerState<StartPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authStateChangesProvider, (_, state) {
+      setState(() {
+        _user = state.asData?.value;
+      });
+    });
     return Scaffold(
       backgroundColor: Color(0xff2E2E2E),
       body: SafeArea(
@@ -299,16 +315,7 @@ class _StartPageState extends ConsumerState<StartPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () async {
-                          final User? user = await signInWithGoogle();
-                          if (user != null && user.email != null) {
-                            // Bezpośrednie przekazanie user.email do ScreensPanel, ponieważ już sprawdziliśmy, że nie jest null
-                            String? uid = user?.uid;
-                            if (uid != null) {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(builder: (context) => ScreensPanel()), // używamy operatora wykrzyknika, ponieważ już sprawdziliśmy, że uid nie jest null
-                              );
-                            }
-                          }
+                          await signInWithGoogle();
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
