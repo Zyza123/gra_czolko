@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:gra_czolko/user_panels/play_page.dart';
 import 'package:gra_czolko/user_panels/profile_page.dart';
 import 'home_page.dart';
+
 
 class ScreensPanel extends ConsumerStatefulWidget {
   const ScreensPanel({super.key});
@@ -13,6 +16,7 @@ class ScreensPanel extends ConsumerStatefulWidget {
   @override
   ConsumerState<ScreensPanel> createState() => _ScreensPanelState();
 }
+
 
 final userDataProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, uid) async {
   CollectionReference users = FirebaseFirestore.instance.collection('users');
@@ -27,34 +31,21 @@ final userDataProvider = FutureProvider.family<Map<String, dynamic>, String>((re
   }
 });
 
-final baseDataProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, uid) async {
-  CollectionReference base =  FirebaseFirestore.instance.collection('baza');
-  DocumentReference<Object?> baseDoc = base.doc("test");
-  final docSnapshot = await baseDoc.get();
 
-  if (docSnapshot.exists) {
-    return docSnapshot.data() as Map<String, dynamic>;
-  } else {
-    // Zwracamy pusty obiekt, jeśli dokument nie istnieje.
-    return {};
-  }
-});
 
 class _ScreensPanelState extends ConsumerState<ScreensPanel> {
 
   int currentIndex = 0;
   late final List<Widget> _screens;
 
-
-
   @override
   void initState() {
+    super.initState();
     _screens = [
       HomePage(),
       PlayPage(),
       ProfilePage(),
     ];
-    super.initState();
   }
 
   @override
@@ -90,17 +81,17 @@ class _ScreensPanelState extends ConsumerState<ScreensPanel> {
               GButton(
                 icon: Icons.home,
                 text: 'Dom',
-                textStyle: TextStyle(fontSize: 20,),
+                textStyle: TextStyle(fontSize: 18,),
               ),
               GButton(
                 icon: Icons.videogame_asset_sharp,
                 text: 'Gra',
-                textStyle: TextStyle(fontSize: 20,),
+                textStyle: TextStyle(fontSize: 18,),
               ),
               GButton(
                 icon: Icons.person_rounded,
                 text: 'Profil',
-                textStyle: TextStyle(fontSize: 20,),
+                textStyle: TextStyle(fontSize: 18,),
               ),
             ],
           ),

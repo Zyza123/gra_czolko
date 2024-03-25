@@ -1,11 +1,15 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_cached_image/firebase_cached_image.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lottie/lottie.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:http/http.dart' as http;
 import '../user_panels/screens_panel.dart';
 import '/login_panels/register.dart';
 import 'package:flutter/material.dart';
@@ -56,6 +60,56 @@ final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
   return FirebaseAuth.instance;
 });
 
+final jsonDataProvider = FutureProvider<List<dynamic>>((ref) async {
+  return await fetchJsonFromFirebaseStorage();
+});
+
+Future<List<dynamic>> fetchJsonFromFirebaseStorage() async {
+  final ref = FirebaseStorage.instance.ref("/gatunki/jsons");
+  final ListResult result = await ref.listAll();
+  List<Future<dynamic>> jsonFetches = result.items.map((item) async {
+    var downloadURL = await item.getDownloadURL();
+    var response = await http.get(Uri.parse(downloadURL));
+
+    if (response.statusCode == 200) {
+      // Deserializacja i zwrócenie danych JSON
+      return json.decode(utf8.decode(response.bodyBytes));
+    } else {
+      print('Błąd podczas pobierania pliku: ${item.fullPath}');
+      return null; // Możesz zwrócić null lub jakąś domyślną wartość w przypadku błędu
+    }
+  }).toList();
+
+  // Czekaj na zakończenie wszystkich przyszłości i zwróć wyniki
+  return Future.wait(jsonFetches.where((element) => element != null).toList());
+}
+
+final pngIconsDataProvider = FutureProvider<List<Map<String, String?>?>>((ref) async {
+  return await fetchPngIconsFromFirebaseStorage();
+});
+
+Future<List<Map<String, String?>?>> fetchPngIconsFromFirebaseStorage() async {
+  final ref = FirebaseStorage.instance.ref("/gatunki/icons");
+  final ListResult result = await ref.listAll();
+  List<Future<Map<String, String?>?>> pngFetches = result.items.map((item) async {
+    if (item.name.endsWith('.png')) {
+      var downloadURL = await item.getDownloadURL();
+      await FirebaseCacheManager().preCacheFile(FirebaseUrl(downloadURL));
+      return {
+        'url': downloadURL, // Zwrócenie URL
+        'name': item.name,  // Zwrócenie nazwy pliku
+      };
+    } else {
+      return null;
+    }
+  }).toList();
+
+  // Czekaj na zakończenie wszystkich przyszłości i zwróć wyniki, ignorując null
+  var fetchedList = await Future.wait(pngFetches);
+  return fetchedList.where((element) => element != null).toList() as List<Map<String, String?>?>;
+}
+
+
 class _StartPageState extends ConsumerState<StartPage> {
 
   late TapGestureRecognizer _registerTapRecognizer;
@@ -84,6 +138,15 @@ class _StartPageState extends ConsumerState<StartPage> {
          ),
        );
      };
+    Future.microtask(() async {
+      // "Watchowanie" providera nie wymaga robienia nic więcej, poza wywołaniem ref.watch
+      // w kontekście, który ma dostęp do providera. W tym przypadku nie musimy nawet
+      // przypisywać wyniku do zmiennej, chyba że chcemy z niego skorzystać od razu.
+      ref.watch(jsonDataProvider);
+      final imagesData = await ref.read(pngIconsDataProvider.future);
+      // Jeśli chcesz wykonać jakieś operacje na danych z providerów (na przykład logowanie),
+      // tutaj jest dobre miejsce, aby to zrobić. Pamiętaj jednak, że operacje te będą asynchroniczne.
+    });
   }
 
   Future<void> signInWithEmailPassword(String email, String password) async {
