@@ -22,7 +22,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   final combinedDataProvider = FutureProvider<List<dynamic>>((ref) async {
     final asyncData = await ref.watch(jsonDataProvider.future);
-    final iconData = await ref.watch(pngIconsDataProvider.future);
+    final iconData = await ref.watch(pngIconsDataProvider64.future);
     // Przy założeniu, że oba zwracają listę, możesz je połączyć lub obsłużyć inaczej
     return [asyncData, iconData]; // Zwraca listę zawierającą obie odpowiedzi
   });
@@ -72,16 +72,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                   var iconsData1 = [];
                   for (var itemGenre in selectedGenres1) {
                     for (var itemIcon in combinedData[1]) {
-                      if (itemGenre['IconName64'] == itemIcon['name']) {
-                        iconsData1.add(itemIcon['url']);
+                      if (itemGenre['IconName64'] == itemIcon['Name']) {
+                        iconsData1.add(itemIcon['Url']);
                       }
                     }
                   }
                   var iconsData2 = [];
                   for (var itemGenre in selectedGenres2) {
                     for (var itemIcon in combinedData[1]) {
-                      if (itemGenre['IconName64'] == itemIcon['name']) {
-                        iconsData2.add(itemIcon['url']);
+                      if (itemGenre['IconName64'] == itemIcon['Name']) {
+                        iconsData2.add(itemIcon['Url']);
                       }
                     }
                   }

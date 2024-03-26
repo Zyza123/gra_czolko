@@ -84,20 +84,45 @@ Future<List<dynamic>> fetchJsonFromFirebaseStorage() async {
   return Future.wait(jsonFetches.where((element) => element != null).toList());
 }
 
-final pngIconsDataProvider = FutureProvider<List<Map<String, String?>?>>((ref) async {
-  return await fetchPngIconsFromFirebaseStorage();
+final pngIconsDataProvider64 = FutureProvider<List<Map<String, String?>?>>((ref) async {
+  return await fetchPngIconsFromFirebaseStorage64();
 });
 
-Future<List<Map<String, String?>?>> fetchPngIconsFromFirebaseStorage() async {
+Future<List<Map<String, String?>?>> fetchPngIconsFromFirebaseStorage64() async {
   final ref = FirebaseStorage.instance.ref("/gatunki/icons");
   final ListResult result = await ref.listAll();
   List<Future<Map<String, String?>?>> pngFetches = result.items.map((item) async {
-    if (item.name.endsWith('.png')) {
+    if (item.name.endsWith('64.png')) {
       var downloadURL = await item.getDownloadURL();
       await FirebaseCacheManager().preCacheFile(FirebaseUrl(downloadURL));
       return {
-        'url': downloadURL, // Zwrócenie URL
-        'name': item.name,  // Zwrócenie nazwy pliku
+        'Url': downloadURL, // Zwrócenie URL
+        'Name': item.name,  // Zwrócenie nazwy pliku
+      };
+    } else {
+      return null;
+    }
+  }).toList();
+
+  // Czekaj na zakończenie wszystkich przyszłości i zwróć wyniki, ignorując null
+  var fetchedList = await Future.wait(pngFetches);
+  return fetchedList.where((element) => element != null).toList() as List<Map<String, String?>?>;
+}
+
+final pngIconsDataProvider128 = FutureProvider<List<Map<String, String?>?>>((ref) async {
+  return await fetchPngIconsFromFirebaseStorage64();
+});
+
+Future<List<Map<String, String?>?>> fetchPngIconsFromFirebaseStorage128() async {
+  final ref = FirebaseStorage.instance.ref("/gatunki/icons");
+  final ListResult result = await ref.listAll();
+  List<Future<Map<String, String?>?>> pngFetches = result.items.map((item) async {
+    if (item.name.endsWith('128.png')) {
+      var downloadURL = await item.getDownloadURL();
+      await FirebaseCacheManager().preCacheFile(FirebaseUrl(downloadURL));
+      return {
+        'Url': downloadURL, // Zwrócenie URL
+        'Name': item.name,  // Zwrócenie nazwy pliku
       };
     } else {
       return null;
@@ -143,7 +168,7 @@ class _StartPageState extends ConsumerState<StartPage> {
       // w kontekście, który ma dostęp do providera. W tym przypadku nie musimy nawet
       // przypisywać wyniku do zmiennej, chyba że chcemy z niego skorzystać od razu.
       ref.watch(jsonDataProvider);
-      final imagesData = await ref.read(pngIconsDataProvider.future);
+      final imagesData = await ref.read(pngIconsDataProvider64.future);
       // Jeśli chcesz wykonać jakieś operacje na danych z providerów (na przykład logowanie),
       // tutaj jest dobre miejsce, aby to zrobić. Pamiętaj jednak, że operacje te będą asynchroniczne.
     });
