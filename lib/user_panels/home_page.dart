@@ -3,8 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_cached_image/firebase_cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gra_czolko/user_panels/play_panel/genre_pick_page.dart';
 import 'package:gra_czolko/user_panels/screens_panel.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:page_transition/page_transition.dart';
 import '../login_panels/start.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -66,7 +68,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ? genresData.sublist(0, 4)
                       : genresData;
                   var selectedGenres2 = genresData.length > 4
-                      ? genresData.sublist(genresData.length - 5, genresData.length - 1)
+                      ? genresData.sublist(
+                          genresData.length - 5, genresData.length - 1)
                       : genresData;
                   var itemWidth = MediaQuery.of(context).size.width / 2 - 25;
                   var iconsData1 = [];
@@ -110,45 +113,62 @@ class _HomePageState extends ConsumerState<HomePage> {
                             children:
                                 List.generate(selectedGenres1.length, (index) {
                               // Tutaj możesz dostosować wyświetlanie poszczególnych elementów listy
-                              return Container(
-                                  width: itemWidth,
-                                  height: 140,
-                                  margin: EdgeInsets.only(
-                                      right: index < selectedGenres1.length - 1
-                                          ? 20
-                                          : 0),
-                                  // Dodaj margines tylko między elementami, nie po ostatnim elemencie
-                                  padding: EdgeInsets.all(10),
-                                  // Padding wewnątrz kontenera
-                                  decoration: BoxDecoration(
-                                    color: Color(int.parse(
-                                        selectedGenres1[index]['color'])),
-                                    // Kolor tła kontenera
-                                    borderRadius: BorderRadius.circular(
-                                        10), // Zaokrąglenie rogów
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Image(
-                                        image: FirebaseImageProvider(
-                                            FirebaseUrl(iconsData1[index])),
-                                        width: 64,
-                                        height: 64,
-                                        fit: BoxFit.cover,
-                                      ),
-                                      Text(
-                                        selectedGenres1[index]['Name'] ??
-                                            'Brak nazwy',
-                                        style: TextStyle(
-                                            fontFamily: 'Jaapokki',
-                                            color: Colors.white,
-                                            fontSize: 17),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ));
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    PageTransition(
+                                        type: PageTransitionType.fade,
+                                        child: GenrePickPage(
+                                          index: selectedGenres1[index]['Id'],
+                                        ),
+                                        isIos: true,
+                                        duration: Duration(milliseconds: 500),
+                                        reverseDuration:
+                                            Duration(milliseconds: 500)),
+                                  );
+                                },
+                                child: Container(
+                                    width: itemWidth,
+                                    height: 140,
+                                    margin: EdgeInsets.only(
+                                        right:
+                                            index < selectedGenres1.length - 1
+                                                ? 20
+                                                : 0),
+                                    // Dodaj margines tylko między elementami, nie po ostatnim elemencie
+                                    padding: EdgeInsets.all(10),
+                                    // Padding wewnątrz kontenera
+                                    decoration: BoxDecoration(
+                                      color: Color(int.parse(
+                                          selectedGenres1[index]['color'])),
+                                      // Kolor tła kontenera
+                                      borderRadius: BorderRadius.circular(
+                                          10), // Zaokrąglenie rogów
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Image(
+                                          image: FirebaseImageProvider(
+                                              FirebaseUrl(iconsData1[index])),
+                                          width: 64,
+                                          height: 64,
+                                          fit: BoxFit.cover,
+                                        ),
+                                        Text(
+                                          selectedGenres1[index]['Name'] ??
+                                              'Brak nazwy',
+                                          style: TextStyle(
+                                              fontFamily: 'Jaapokki',
+                                              color: Colors.white,
+                                              fontSize: 17),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    )),
+                              );
                             }),
                           ),
                         ),
@@ -174,45 +194,60 @@ class _HomePageState extends ConsumerState<HomePage> {
                             children:
                                 List.generate(selectedGenres2.length, (index) {
                               // Tutaj możesz dostosować wyświetlanie poszczególnych elementów listy
-                              return Container(
-                                  width: itemWidth,
-                                  height: 140,
-                                  margin: EdgeInsets.only(
-                                      right: index < selectedGenres2.length - 1
-                                          ? 20
-                                          : 0),
-                                  // Dodaj margines tylko między elementami, nie po ostatnim elemencie
-                                  padding: EdgeInsets.all(10),
-                                  // Padding wewnątrz kontenera
-                                  decoration: BoxDecoration(
-                                    color: Color(int.parse(
-                                        selectedGenres2[index]['color'])),
-                                    // Kolor tła kontenera
-                                    borderRadius: BorderRadius.circular(
-                                        10), // Zaokrąglenie rogów
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Image(
-                                        image: FirebaseImageProvider(
-                                            FirebaseUrl(iconsData2[index])),
-                                        width: 64,
-                                        height: 64,
-                                        fit: BoxFit.cover,
-                                      ),
-                                      Text(
-                                        selectedGenres2[index]['Name'] ??
-                                            'Brak nazwy',
-                                        style: TextStyle(
-                                            fontFamily: 'Jaapokki',
-                                            color: Colors.white,
-                                            fontSize: 17),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ));
+                              return InkWell(
+                                onTap: (){
+                                  Navigator.push(
+                                    context,
+                                    PageTransition(
+                                        type: PageTransitionType.fade,
+                                        child: GenrePickPage(index: selectedGenres2[index]['Id'] ,),
+                                        isIos: true,
+                                        duration: Duration(milliseconds: 500),
+                                        reverseDuration: Duration(milliseconds: 500)
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                    width: itemWidth,
+                                    height: 140,
+                                    margin: EdgeInsets.only(
+                                        right:
+                                            index < selectedGenres2.length - 1
+                                                ? 20
+                                                : 0),
+                                    // Dodaj margines tylko między elementami, nie po ostatnim elemencie
+                                    padding: EdgeInsets.all(10),
+                                    // Padding wewnątrz kontenera
+                                    decoration: BoxDecoration(
+                                      color: Color(int.parse(
+                                          selectedGenres2[index]['color'])),
+                                      // Kolor tła kontenera
+                                      borderRadius: BorderRadius.circular(
+                                          10), // Zaokrąglenie rogów
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Image(
+                                          image: FirebaseImageProvider(
+                                              FirebaseUrl(iconsData2[index])),
+                                          width: 64,
+                                          height: 64,
+                                          fit: BoxFit.cover,
+                                        ),
+                                        Text(
+                                          selectedGenres2[index]['Name'] ??
+                                              'Brak nazwy',
+                                          style: TextStyle(
+                                              fontFamily: 'Jaapokki',
+                                              color: Colors.white,
+                                              fontSize: 17),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    )),
+                              );
                             }),
                           ),
                         ),

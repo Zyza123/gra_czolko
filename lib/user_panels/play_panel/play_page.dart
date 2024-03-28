@@ -4,11 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_cached_image/firebase_cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gra_czolko/user_panels/play_panel/genre_pick_page.dart';
 import 'package:gra_czolko/user_panels/screens_panel.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../login_panels/start.dart';
+import '../../login_panels/start.dart';
 
 class PlayPage extends ConsumerStatefulWidget {
   const PlayPage({super.key});
@@ -51,8 +53,6 @@ class _PlayPageState extends ConsumerState<PlayPage> {
 
   @override
   Widget build(BuildContext context) {
-    final uid = ref.watch(uidProvider);
-    final userDataAsyncValue = ref.watch(userDataProvider(uid!));
     final combinedDataAsyncValue = ref.watch(combinedDataProvider);
 
     return Scaffold(
@@ -63,10 +63,7 @@ class _PlayPageState extends ConsumerState<PlayPage> {
               const EdgeInsets.only(top: 25.0, left: 15, right: 15, bottom: 10),
           child: Column(
             children: [
-              userDataAsyncValue.when(
-                data: (userData) {
-                  // Wyświetl dane użytkownika
-                  return Padding(
+                  Padding(
                     padding: EdgeInsets.only(bottom: 30),
                     child: Text(
                       'KATEGORIE',
@@ -75,11 +72,7 @@ class _PlayPageState extends ConsumerState<PlayPage> {
                           fontSize: 28,
                           color: Colors.white),
                     ),
-                  );
-                },
-                loading: () => Container(),
-                error: (error, stack) => Text('Wystąpił błąd: $error'),
-              ),
+                  ),
               Expanded(
                 child: combinedDataAsyncValue.when(
                   data: (combinedData) {
@@ -163,32 +156,46 @@ class _PlayPageState extends ConsumerState<PlayPage> {
                         ),
                         itemCount: genresData.length,
                         itemBuilder: (context, index) {
-                          return Container(
-                            height: 140,
-                            decoration: BoxDecoration(
-                              color:
-                                  Color(int.parse(genresData[index]['color'])),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Image(
-                                  image: FirebaseImageProvider(
-                                      FirebaseUrl(iconsData[index]['Url'])),
-                                  width: 64,
-                                  height: 64,
-                                  fit: BoxFit.cover,
+                          return InkWell(
+                            onTap: (){
+                              Navigator.push(
+                                context,
+                                PageTransition(
+                                    type: PageTransitionType.fade,
+                                    child: GenrePickPage(index: genresData[index]['Id'] ,),
+                                    isIos: true,
+                                    duration: Duration(milliseconds: 500),
+                                    reverseDuration: Duration(milliseconds: 500)
                                 ),
-                                Text(
-                                  genresData[index]['Name'] ?? 'Brak nazwy',
-                                  style: TextStyle(
-                                      fontFamily: 'Jaapokki',
-                                      color: Colors.white,
-                                      fontSize: 17),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
+                              );
+                            },
+                            child: Container(
+                              height: 140,
+                              decoration: BoxDecoration(
+                                color:
+                                Color(int.parse(genresData[index]['color'])),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Image(
+                                    image: FirebaseImageProvider(
+                                        FirebaseUrl(iconsData[index]['Url'])),
+                                    width: 64,
+                                    height: 64,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Text(
+                                    genresData[index]['Name'] ?? 'Brak nazwy',
+                                    style: TextStyle(
+                                        fontFamily: 'Jaapokki',
+                                        color: Colors.white,
+                                        fontSize: 17),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },

@@ -110,7 +110,7 @@ Future<List<Map<String, String?>?>> fetchPngIconsFromFirebaseStorage64() async {
 }
 
 final pngIconsDataProvider128 = FutureProvider<List<Map<String, String?>?>>((ref) async {
-  return await fetchPngIconsFromFirebaseStorage64();
+  return await fetchPngIconsFromFirebaseStorage128();
 });
 
 Future<List<Map<String, String?>?>> fetchPngIconsFromFirebaseStorage128() async {
