@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_cached_image/firebase_cached_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -147,6 +148,7 @@ class _StartPageState extends ConsumerState<StartPage> {
 
   @override
   void initState() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     _loadRememberMe();
     users = FirebaseFirestore.instance.collection('users');
     super.initState();

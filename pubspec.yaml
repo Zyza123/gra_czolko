@@ -85,6 +85,12 @@ flutter:
     - assets/user_panels/ear.png
     - assets/user_panels/show.png
     - assets/user_panels/story.png
+    - assets/user_panels/bg0.jpg
+    - assets/user_panels/bg1.jpg
+    - assets/user_panels/bg2.jpg
+    - assets/user_panels/bg3.jpg
+    - assets/user_panels/bg4.jpg
+    - assets/user_panels/bg5.jpg
     - assets/animations/anim_login.json
 
   # An image asset can refer to one or more resolution-specific "variants", see

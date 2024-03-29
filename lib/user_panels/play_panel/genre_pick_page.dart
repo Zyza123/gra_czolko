@@ -1,11 +1,14 @@
 import 'package:firebase_cached_image/firebase_cached_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import '../../login_panels/start.dart';
+import 'game_page.dart';
 
 class GenrePickPage extends ConsumerStatefulWidget {
   final int index; // Dodanie zmiennej index
@@ -22,6 +25,7 @@ class GenrePickPage extends ConsumerStatefulWidget {
 class _GenrePickPageState extends ConsumerState<GenrePickPage> {
   @override
   void initState() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.initState();
   }
 
@@ -163,47 +167,77 @@ class _GenrePickPageState extends ConsumerState<GenrePickPage> {
                       child: Row(
                         children: [
                           Expanded(
-                              child: Container(
-                            height: 125,
-                            color: Color(0xFFE47CED),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Image.asset(
-                                  'assets/user_panels/story.png',
-                                  width: 64,
-                                  height: 64,
-                                ),
-                                Text(
-                                  "opowiadanie",
-                                  style: TextStyle(
-                                      fontFamily: "Jaapokki",
-                                      fontSize: 21,
-                                      color: Colors.white),
-                                ),
-                              ],
+                              child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                PageTransition(
+                                    type: PageTransitionType.fade,
+                                    child: PlayPage(type: 0,bg: 'assets/user_panels/bg0.jpg',genreKeys: genreKeys,),
+                                    isIos: true,
+                                    duration: Duration(milliseconds: 500),
+                                    reverseDuration:
+                                        Duration(milliseconds: 500)),
+                              );
+                            },
+                            child: Container(
+                              height: 125,
+                              color: Color(0xFFE47CED),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Image.asset(
+                                    'assets/user_panels/story.png',
+                                    width: 64,
+                                    height: 64,
+                                  ),
+                                  Text(
+                                    "opowiadanie",
+                                    style: TextStyle(
+                                        fontFamily: "Jaapokki",
+                                        fontSize: 21,
+                                        color: Colors.white),
+                                  ),
+                                ],
+                              ),
                             ),
                           )),
                           Expanded(
-                              child: Container(
-                            height: 125,
-                            color: Color(0xFFE04392),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Image.asset(
-                                  'assets/user_panels/show.png',
-                                  width: 64,
-                                  height: 64,
-                                ),
-                                Text(
-                                  "pokazywanie",
-                                  style: TextStyle(
-                                      fontFamily: "Jaapokki",
-                                      fontSize: 21,
-                                      color: Colors.white),
-                                ),
-                              ],
+                              child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                PageTransition(
+                                    type: PageTransitionType.fade,
+                                    child: PlayPage(type: 1, bg: 'assets/user_panels/bg1.jpg', genreKeys: genreKeys),
+                                    isIos: true,
+                                    duration: Duration(milliseconds: 500),
+                                    reverseDuration:
+                                        Duration(milliseconds: 500)),
+                              );
+                            },
+                            child: Container(
+                              height: 125,
+                              color: Color(0xFFE04392),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Image.asset(
+                                    'assets/user_panels/show.png',
+                                    width: 64,
+                                    height: 64,
+                                  ),
+                                  Text(
+                                    "Pokazywanie",
+                                    style: TextStyle(
+                                        fontFamily: "Jaapokki",
+                                        fontSize: 21,
+                                        color: Colors.white),
+                                  ),
+                                ],
+                              ),
                             ),
                           )),
                         ],
@@ -211,47 +245,73 @@ class _GenrePickPageState extends ConsumerState<GenrePickPage> {
                   Row(
                     children: [
                       Expanded(
-                          child: Container(
-                        height: 125,
-                        color: Color(0xFFE7615B),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Image.asset(
-                              'assets/user_panels/draw.png',
-                              width: 64,
-                              height: 64,
-                            ),
-                            Text(
-                              "rysowanie",
-                              style: TextStyle(
-                                  fontFamily: "Jaapokki",
-                                  fontSize: 21,
-                                  color: Colors.white),
-                            ),
-                          ],
+                          child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            PageTransition(
+                                type: PageTransitionType.fade,
+                                child: PlayPage(type: 2, bg: 'assets/user_panels/bg2.jpg', genreKeys: genreKeys),
+                                isIos: true,
+                                duration: Duration(milliseconds: 500),
+                                reverseDuration: Duration(milliseconds: 500)),
+                          );
+                        },
+                        child: Container(
+                          height: 125,
+                          color: Color(0xFFE7615B),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Image.asset(
+                                'assets/user_panels/draw.png',
+                                width: 64,
+                                height: 64,
+                              ),
+                              Text(
+                                "Rysowanie",
+                                style: TextStyle(
+                                    fontFamily: "Jaapokki",
+                                    fontSize: 21,
+                                    color: Colors.white),
+                              ),
+                            ],
+                          ),
                         ),
                       )),
                       Expanded(
-                          child: Container(
-                        height: 125,
-                        color: Color(0xFFED7F25),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Image.asset(
-                              'assets/user_panels/ear.png',
-                              width: 64,
-                              height: 64,
-                            ),
-                            Text(
-                              "głuchy telefon",
-                              style: TextStyle(
-                                  fontFamily: "Jaapokki",
-                                  fontSize: 21,
-                                  color: Colors.white),
-                            ),
-                          ],
+                          child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            PageTransition(
+                                type: PageTransitionType.fade,
+                                child: PlayPage(type: 3, bg: 'assets/user_panels/bg3.jpg', genreKeys: genreKeys),
+                                isIos: true,
+                                duration: Duration(milliseconds: 500),
+                                reverseDuration: Duration(milliseconds: 500)),
+                          );
+                        },
+                        child: Container(
+                          height: 125,
+                          color: Color(0xFFED7F25),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Image.asset(
+                                'assets/user_panels/ear.png',
+                                width: 64,
+                                height: 64,
+                              ),
+                              Text(
+                                "głuchy telefon",
+                                style: TextStyle(
+                                    fontFamily: "Jaapokki",
+                                    fontSize: 21,
+                                    color: Colors.white),
+                              ),
+                            ],
+                          ),
                         ),
                       )),
                     ],
