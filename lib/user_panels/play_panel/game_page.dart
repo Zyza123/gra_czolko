@@ -23,28 +23,35 @@ enum Action {
   counting_start,
   counting_between,
   guessing,
-  end,
+  empty,
   right,
   wrong,
+  end,
 }
 
 class _PlayPageState extends State<PlayPage> {
   int start_seconds = 5;
-  int between_seconds = 2;
+  int between_seconds = 1;
   Timer? _timer;
   late Action action;
   late int typeTime;
   late List<String> chosenWords;
+  late List<int> points;
   int question = 0;
 
   void setTime() {
     if (widget.type == 0 || widget.type == 1) {
-      typeTime = 10;
+      typeTime = 59;
     } else if (widget.type == 2) {
-      typeTime = 120;
+      typeTime = 119;
     } else {
-      typeTime = 180;
+      typeTime = 179;
     }
+  }
+  String formatSeconds(int seconds) {
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+    return "${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}";
   }
 
   Future<void> startTimer() async {
@@ -130,6 +137,9 @@ class _PlayPageState extends State<PlayPage> {
     }
     else{
       // kod kończący podsumowujący
+      setState(() {
+        action = Action.end;
+      });
     }
   }
 
@@ -141,24 +151,16 @@ class _PlayPageState extends State<PlayPage> {
   }
 
   Widget columnGuess(int index) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Text(chosenWords[index],
-          style: TextStyle(
-            fontSize: 60.0,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                blurRadius: 2.0,
-                color: Colors.black,
-                offset: Offset(1.0, 1.0),
-              ),
-            ],
-          ),),
-        Text(typeTime.toString(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text(chosenWords[index],
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 45.0,
+              fontSize: 60.0,
               color: Colors.white,
               shadows: [
                 Shadow(
@@ -167,8 +169,21 @@ class _PlayPageState extends State<PlayPage> {
                   offset: Offset(1.0, 1.0),
                 ),
               ],
-            )),
-      ],
+            ),),
+          Text(formatSeconds((typeTime+1)),
+              style: TextStyle(
+                fontSize: 45.0,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    blurRadius: 2.0,
+                    color: Colors.black,
+                    offset: Offset(1.0, 1.0),
+                  ),
+                ],
+              )),
+        ],
+      ),
     );
   }
 
@@ -187,7 +202,6 @@ class _PlayPageState extends State<PlayPage> {
       int chosenIndex = indices[i];
       words.add(genreKeysCopy[chosenIndex]['Name']);
     }
-
     return words;
   }
 
@@ -200,6 +214,7 @@ class _PlayPageState extends State<PlayPage> {
       DeviceOrientation.landscapeLeft,
     ]);
     chosenWords = chooseWatchwords();
+    points = List<int>.filled(chosenWords.length, 0);
     initGame();
   }
 
@@ -212,6 +227,7 @@ class _PlayPageState extends State<PlayPage> {
     precacheImage(AssetImage("assets/user_panels/bg3.jpg"), context);
     precacheImage(AssetImage("assets/user_panels/bg4.jpg"), context);
     precacheImage(AssetImage("assets/user_panels/bg5.jpg"), context);
+    precacheImage(AssetImage("assets/user_panels/bg6.jpg"), context);
     // Możesz tutaj umieścić inne operacje wymagające kontekstu
   }
 
@@ -234,6 +250,7 @@ class _PlayPageState extends State<PlayPage> {
             setState(() {
               action = Action.right;
             });
+            points[question] = 1;
             betweenQuestions();
           }
         },
@@ -316,11 +333,83 @@ class _PlayPageState extends State<PlayPage> {
             if (action == Action.counting_start)
               Center(
                   child: Text(
-                start_seconds.toString(),
-                style: TextStyle(
-                    fontFamily: "Jaapokki", fontSize: 35, color: Colors.white),
+                 (start_seconds+1).toString(),
+                style: const TextStyle(
+                    fontFamily: "Jaapokki", fontSize: 50, color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 2.0,
+                      color: Colors.black,
+                      offset: Offset(1.0, 1.0),
+                    ),
+                  ],),
               )),
             if (action == Action.guessing) Center(child: columnGuess(question)),
+            if(action == Action.end)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 5,bottom: 5),
+                  child: Column(
+                    children: [
+                      Text("Podsumowanie",
+                        style: TextStyle(
+                          fontSize: 50.0,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 2.0,
+                              color: Colors.black,
+                              offset: Offset(1.0, 1.0),
+                            ),
+                          ],
+                        ),),
+                      SizedBox(height: 10,),
+                      Expanded( // Zawijamy ListView.builder w widget Expanded
+                        child: ListView.builder(
+                          itemCount: chosenWords.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Text(
+                                chosenWords[index],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 30.0,
+                                  fontWeight: points[index] == 1 ? FontWeight.bold : FontWeight.normal,
+                                  color: points[index] == 1 ? Color(0xFF5CE600) : Color(0xFFE60000),
+                                  shadows: [
+                                    Shadow(
+                                      blurRadius: 1.0,
+                                      color: Colors.black,
+                                      offset: Offset(1.0, 1.0),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 5,),
+                      OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          '   Koniec   ',
+                          style: TextStyle(
+                            color: Colors.white, // Biała czcionka
+                            fontSize: 30
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.white,width: 2), // Biały obramowanie
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20),), // Zaokrąglone rogi
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
           ],
         ),
       )),

@@ -91,6 +91,7 @@ flutter:
     - assets/user_panels/bg3.jpg
     - assets/user_panels/bg4.jpg
     - assets/user_panels/bg5.jpg
+    - assets/user_panels/bg6.jpg
     - assets/animations/anim_login.json
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -236,17 +236,24 @@ class _StartPageState extends ConsumerState<StartPage> {
     });
   }
 
-  Future<void> addDataToFirestore(String email) async {
+  Future<void> _resetRemembering() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('remember_me',false);
+    await prefs.setString('email', "");
+    await prefs.setString('password', "");
+  }
 
-    final DocumentReference userRef = users.doc(email);
+  Future<void> addDataToFirestore(User user) async {
+
+    final DocumentReference userRef = users.doc((user.uid));
     final DocumentSnapshot userDoc = await userRef.get();
     if (!userDoc.exists) {
       // Użytkownik nie istnieje, więc dodajemy jego dane
       try {
-        await userRef.set({"exists": true});
-        await userRef.collection('account').doc('account').set({
+        await users.doc(user.uid).set({"exists": true});
+        await users.doc(user.uid).collection('account').doc('account').set({
           "username": "User", // Tutaj możesz użyć rzeczywistej nazwy użytkownika, jeśli jest dostępna
-          "email": email,
+          "email": user.email,
           "theme": "dark",
         });
         await userRef.collection('favorite').doc('favorite').set({});
@@ -263,6 +270,7 @@ class _StartPageState extends ConsumerState<StartPage> {
   }
 
   Future<void> signInWithGoogle() async {
+    _resetRemembering();
     setState(() {
       showSignAnimation = true; // Pokaż animację
     });
@@ -286,7 +294,7 @@ class _StartPageState extends ConsumerState<StartPage> {
           // Tutaj możesz dodać użytkownika do Firestore, jeśli potrzebujesz
           String? email = user.email;
           if (email != null) {
-            await addDataToFirestore(email); // Upewnij się, że ta funkcja jest zdefiniowana i działa poprawnie
+            await addDataToFirestore(user); // Upewnij się, że ta funkcja jest zdefiniowana i działa poprawnie
           }
           // Aktualizacja UID w providerze
           ref.read(uidProvider.notifier).setUID(user.uid);
