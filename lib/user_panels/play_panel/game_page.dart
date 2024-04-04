@@ -145,7 +145,7 @@ class _PlayPageState extends State<PlayPage> {
 
   Future<void> betweenQuestions() async {
     _timer?.cancel();
-    between_seconds = 2;
+    between_seconds = 1;
     await betweenTimer();
     nextQuestion();
   }
