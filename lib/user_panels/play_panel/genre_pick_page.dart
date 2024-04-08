@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_cached_image/firebase_cached_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +10,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 import '../../login_panels/start.dart';
+import '../../widgets/myElevatedButton.dart';
 import 'game_page.dart';
 
 class GenrePickPage extends ConsumerStatefulWidget {
@@ -23,17 +26,126 @@ class GenrePickPage extends ConsumerStatefulWidget {
 }
 
 class _GenrePickPageState extends ConsumerState<GenrePickPage> {
+
+  bool favorite = false;
+  User? userCredential;
+
   @override
   void initState() {
-    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.initState();
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    initializeFavorites();
   }
+
+  Future<void> initializeFavorites() async {
+    userCredential = ref.read(firebaseAuthProvider).currentUser;
+    if (userCredential != null) {
+      favorite = await checkIfFavorite(userCredential!);
+      setState(() {});
+    }
+  }
+
 
   final combinedDataProvider = FutureProvider<List<dynamic>>((ref) async {
     final asyncData = await ref.watch(jsonDataProvider.future);
     final iconData = await ref.watch(pngIconsDataProvider128.future);
     return [asyncData, iconData]; // Zwraca listę zawierającą obie odpowiedzi
   });
+
+  Future<void> addGenreToFavorite(User user) async {
+    try {
+      DocumentReference favorites = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('favorite')
+          .doc('favorite');
+
+      // Tworzymy nazwę pola, które chcemy dodać lub zaktualizować
+      String fieldName = widget.index.toString(); // lub inny sposób formułowania nazwy pola
+
+      // Ustawiamy wartość pola na widget.index, używając merge: true, aby nie nadpisywać innych pól
+      await favorites.set({ fieldName: widget.index }, SetOptions(merge: true));
+
+      print("Dodano gatunek do ulubionych.");
+    } catch (e) {
+      print("Wystąpił błąd podczas zapisywania danych do Firestore: $e");
+    }
+  }
+
+  Future<void> removeGenreFromFavorite(User user) async {
+    try {
+      DocumentReference favorites = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('favorite')
+          .doc('favorite');
+
+      // Tworzymy nazwę pola, które chcemy usunąć
+      String fieldName = widget.index.toString(); // lub inny sposób formułowania nazwy pola
+
+      // Używamy update z FieldValue.delete() aby usunąć pole
+      await favorites.update({ fieldName: FieldValue.delete() });
+
+      print("Usunięto gatunek z ulubionych.");
+    } catch (e) {
+      print("Wystąpił błąd podczas usuwania danych z Firestore: $e");
+    }
+  }
+
+  Future<void> toggleFavoriteStatus() async {
+    if (userCredential != null) {
+      if (favorite) {
+        await removeGenreFromFavorite(userCredential!);
+      } else {
+        await addGenreToFavorite(userCredential!);
+      }
+      // Po wykonaniu operacji, sprawdzamy na nowo stan ulubionych
+      // i aktualizujemy interfejs użytkownika.
+      bool newFavoriteStatus = await checkIfFavorite(userCredential!);
+      setState(() {
+        favorite = newFavoriteStatus;
+      });
+    }
+  }
+
+  Future<bool> checkIfFavorite(User user) async {
+    try {
+      DocumentReference favorites = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('favorite')
+          .doc('favorite');
+
+      DocumentSnapshot snapshot = await favorites.get();
+
+      if (snapshot.exists) {
+        // Uzyskujemy mapę danych z dokumentu
+        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+
+        // Zakładając, że pola są nazwane jako '1', '2', '3', etc.
+        String fieldName = widget.index.toString();
+
+        // Sprawdzamy, czy mapa danych zawiera klucz o nazwie fieldName
+        if (data.containsKey(fieldName)) {
+          // Jeśli klucz istnieje, to zakładamy, że index jest ulubiony
+          print("Element znajduje się w ulubionych.");
+          return true;
+        } else {
+          // Jeśli klucz nie istnieje, to index nie jest ulubiony
+          print("Element nie znajduje się w ulubionych.");
+          return false;
+        }
+      } else {
+        print("Dokument nie istnieje.");
+        return false;
+      }
+    } catch (e) {
+      print("Wystąpił błąd podczas pobierania danych z Firestore: $e");
+      return false;
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +258,7 @@ class _GenrePickPageState extends ConsumerState<GenrePickPage> {
                         children: [
                           GradientText(
                             'Jak grać?   ',
-                            style: TextStyle(fontSize: 20),
+                            style: TextStyle(fontSize: 20,fontFamily: "Jaapokki",),
                             colors: [
                               Color(0xffD613E7),
                               Color(0xffED8022)
@@ -154,7 +266,7 @@ class _GenrePickPageState extends ConsumerState<GenrePickPage> {
                           ),
                           GradientText(
                             'pomocnik',
-                            style: TextStyle(fontSize: 20),
+                            style: TextStyle(fontSize: 20,fontFamily: "Jaapokki",),
                             colors: [
                               Color(0xffD613E7),
                               Color(0xffED8022)
@@ -162,6 +274,38 @@ class _GenrePickPageState extends ConsumerState<GenrePickPage> {
                           ),
                         ],
                       )),
+                  Padding(
+                      padding:
+                      EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                      child: MyElevatedButton(
+                        width: double.infinity,
+                        height: 45,
+                        onPressed: () {
+                          toggleFavoriteStatus();
+                        },
+                        borderRadius: BorderRadius.circular(15),
+                        child: AnimatedSwitcher(
+                          duration: Duration(milliseconds: 300), // Czas trwania animacji
+                          transitionBuilder: (Widget child, Animation<double> animation) {
+                            // Tutaj można zdefiniować rodzaj animacji, np. fade transition
+                            return FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            );
+                          },
+                          child: Text(
+                            favorite ? "Już w ulubionych!" : "Dodaj do ulubionych!",
+                            key: ValueKey<bool>(favorite), // Klucz jest potrzebny, aby AnimatedSwitcher wiedział, kiedy zmienić dziecko
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontFamily: "Jaapokki",
+                            ),
+                          ),
+                        ),
+                      ),
+
+                  ),
                   Padding(
                       padding: EdgeInsets.only(top: 10),
                       child: Row(

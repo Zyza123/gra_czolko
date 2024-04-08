@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:gra_czolko/user_panels/play_panel/play_page.dart';
-import 'package:gra_czolko/user_panels/profile_page.dart';
+import 'package:gra_czolko/user_panels/profile_panel/profile_page.dart';
 import 'home_page.dart';
 
 
@@ -29,6 +29,7 @@ final userDataProvider = FutureProvider.family<Map<String, dynamic>, String>((re
     // Zwracamy pusty obiekt, jeśli dokument nie istnieje.
     return {};
   }
+
 });
 
 

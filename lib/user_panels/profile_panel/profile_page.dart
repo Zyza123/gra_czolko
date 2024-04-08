@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gra_czolko/user_panels/profile_panel/account_page.dart';
+import 'package:gra_czolko/user_panels/profile_panel/favorite_page.dart';
 import 'package:gra_czolko/user_panels/screens_panel.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
-import '../login_panels/start.dart';
+import '../../login_panels/start.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -15,8 +19,12 @@ class ProfilePage extends ConsumerStatefulWidget {
 }
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
+
+  late FirebaseAuth auth;
+
   @override
   void initState() {
+    auth = ref.read(firebaseAuthProvider);
     super.initState();
   }
 
@@ -24,7 +32,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   Widget build(BuildContext context) {
     final uid = ref.watch(uidProvider);
     final userDataAsyncValue = ref.watch(userDataProvider(uid!));
-    final auth = ref.watch(firebaseAuthProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xff2E2E2E),
@@ -90,6 +97,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           ),
                           SizedBox(height: 25,),
                           InkWell(
+                            onTap: (){
+                              Navigator.push(
+                                context,
+                                PageTransition(
+                                    type: PageTransitionType.fade,
+                                    child: const AccountPage(),
+                                    isIos: true,
+                                    duration: Duration(milliseconds: 500),
+                                    reverseDuration:
+                                    Duration(milliseconds: 500)),
+                              );
+                            },
                             child: Container(
                               padding: EdgeInsets.symmetric(horizontal: 12,vertical: 10),
                               decoration: BoxDecoration(
@@ -114,6 +133,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           ),
                           SizedBox(height: 20,),
                           InkWell(
+                            onTap: (){
+                              Navigator.push(
+                                context,
+                                PageTransition(
+                                    type: PageTransitionType.fade,
+                                    child: const FavoritePage(),
+                                    isIos: true,
+                                    duration: Duration(milliseconds: 500),
+                                    reverseDuration:
+                                    Duration(milliseconds: 500)),
+                              );
+                            },
                             child: Container(
                               padding: EdgeInsets.symmetric(horizontal: 12,vertical: 10),
                               decoration: BoxDecoration(
