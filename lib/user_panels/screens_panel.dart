@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:gra_czolko/user_panels/play_panel/play_page.dart';
 import 'package:gra_czolko/user_panels/profile_panel/profile_page.dart';
+import '../login_panels/start.dart';
 import 'home_page.dart';
+import 'package:http/http.dart' as http;
 
 
 class ScreensPanel extends ConsumerStatefulWidget {
@@ -32,6 +34,31 @@ final userDataProvider = FutureProvider.family<Map<String, dynamic>, String>((re
 
 });
 
+final jsonUserGenreProvider = FutureProvider.family<List<dynamic>, String>((ref, uid) async {
+  return await fetchJsonUserGenreFromFirebaseStorage(uid);
+});
+
+
+Future<List<dynamic>> fetchJsonUserGenreFromFirebaseStorage(String uid) async {
+  final ref = FirebaseStorage.instance.ref("uzytkownicy/$uid");
+  final ListResult result = await ref.listAll();
+  List<Future<dynamic>> jsonFetches = result.items.map((item) async {
+    var downloadURL = await item.getDownloadURL();
+    var response = await http.get(Uri.parse(downloadURL));
+
+    if (response.statusCode == 200) {
+      // Deserializacja i zwrócenie danych JSON
+      return json.decode(utf8.decode(response.bodyBytes));
+    } else {
+      print('Błąd podczas pobierania pliku: ${item.fullPath}');
+      return null; // Możesz zwrócić null lub jakąś domyślną wartość w przypadku błędu
+    }
+  }).toList();
+
+  // Filtruj null-e i czekaj na zakończenie wszystkich przyszłości
+  var results = await Future.wait(jsonFetches);
+  return results.where((element) => element != null).toList();
+}
 
 
 class _ScreensPanelState extends ConsumerState<ScreensPanel> {
@@ -47,6 +74,8 @@ class _ScreensPanelState extends ConsumerState<ScreensPanel> {
       PlayPage(),
       ProfilePage(),
     ];
+    final uid = ref.read(uidProvider);
+    ref.read(jsonUserGenreProvider(uid!));
   }
 
   @override

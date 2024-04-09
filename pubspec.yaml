@@ -52,6 +52,7 @@ dependencies:
   cached_network_image: ^3.3.1
   flutter_cache_manager: ^3.3.1
   firebase_cached_image: ^0.5.3
+  flutter_colorpicker: ^1.0.3
 
 dev_dependencies:
   flutter_test:
@@ -92,6 +93,8 @@ flutter:
     - assets/user_panels/bg4.jpg
     - assets/user_panels/bg5.jpg
     - assets/user_panels/bg6.jpg
+    - assets/user_panels/user64.png
+    - assets/user_panels/user128.png
     - assets/user_panels/profile_pic.jpg
     - assets/animations/anim_login.json
 

@@ -10,6 +10,7 @@ import 'package:page_transition/page_transition.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import '../../login_panels/start.dart';
+import 'created_page.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -169,6 +170,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           ),
                           SizedBox(height: 20,),
                           InkWell(
+                            onTap: (){
+                              Navigator.push(
+                                context,
+                                PageTransition(
+                                    type: PageTransitionType.fade,
+                                    child: const CreatedPage(),
+                                    isIos: true,
+                                    duration: Duration(milliseconds: 500),
+                                    reverseDuration:
+                                    Duration(milliseconds: 500)),
+                              );
+                            },
                             child: Container(
                               padding: EdgeInsets.symmetric(horizontal: 12,vertical: 10),
                               decoration: BoxDecoration(
