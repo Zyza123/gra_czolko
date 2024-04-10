@@ -7,6 +7,7 @@ import 'package:page_transition/page_transition.dart';
 
 import '../../login_panels/start.dart';
 import '../../widgets/myElevatedButton.dart';
+import 'edit_genre.dart';
 
 class CreatedPage extends ConsumerStatefulWidget {
   const CreatedPage({super.key});
@@ -16,25 +17,42 @@ class CreatedPage extends ConsumerStatefulWidget {
 }
 
 class _CreatedPageState extends ConsumerState<CreatedPage> {
+
   @override
   Widget build(BuildContext context) {
     final uid = ref.watch(uidProvider);
     var userDataGenres = ref.watch(jsonUserGenreProvider(uid!));
 
-    void navigateToAddGenre() async {
-      final result = await Navigator.push(
-        context,
-        PageTransition(
-            type: PageTransitionType.fade,
-            child: const AddGenre(),
-            isIos: true,
-            duration: Duration(milliseconds: 500),
-            reverseDuration: Duration(milliseconds: 500)),
-      );
-
-      if (result == true) {
-        // Tutaj odśwież dane, np. wywołując provider ponownie
-        userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
+    void navigateToAddEditGenre(String fn) async {
+      if(fn.isEmpty){
+        final result = await Navigator.push(
+          context,
+          PageTransition(
+              type: PageTransitionType.fade,
+              child: const AddGenre(),
+              isIos: true,
+              duration: Duration(milliseconds: 500),
+              reverseDuration: Duration(milliseconds: 500)),
+        );
+        if (result == true) {
+          // Tutaj odśwież dane, np. wywołując provider ponownie
+          userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
+        }
+      }
+      else{
+        final result = await Navigator.push(
+          context,
+          PageTransition(
+              type: PageTransitionType.fade,
+              child: EditGenre(genreName: fn),
+              isIos: true,
+              duration: Duration(milliseconds: 500),
+              reverseDuration: Duration(milliseconds: 500)),
+        );
+        if (result == true) {
+          // Tutaj odśwież dane, np. wywołując provider ponownie
+          userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
+        }
       }
     }
 
@@ -71,7 +89,7 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
                 width: double.infinity,
                 height: 45,
                 onPressed: () {
-                  navigateToAddGenre();
+                  navigateToAddEditGenre("");
                 },
                 borderRadius: BorderRadius.circular(15),
                 child: Text(
@@ -114,21 +132,12 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
                       itemBuilder: (context, index) {
                         return InkWell(
                           onTap: (){
-                            //Navigator.push(
-                            //  context,
-                            //  PageTransition(
-                            //      type: PageTransitionType.fade,
-                            //      child: GenrePickPage(index: genresData[index]['Id'] ,),
-                            //      isIos: true,
-                            //      duration: Duration(milliseconds: 500),
-                            //      reverseDuration: Duration(milliseconds: 500)
-                            //  ),
-                            //);
+                            navigateToAddEditGenre(dataGenres[index]['Name']);
                           },
                           child: Container(
                             height: 140,
                             decoration: BoxDecoration(
-                              color: Color(dataGenres[index]['Color']),
+                              color: Color(dataGenres[index]['color']),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Column(
