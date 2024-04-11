@@ -36,7 +36,9 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
         );
         if (result == true) {
           // Tutaj odśwież dane, np. wywołując provider ponownie
-          userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
+          setState(() {
+            userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
+          });
         }
       }
       else{
@@ -51,7 +53,9 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
         );
         if (result == true) {
           // Tutaj odśwież dane, np. wywołując provider ponownie
-          userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
+          setState(() {
+            userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
+          });
         }
       }
     }
