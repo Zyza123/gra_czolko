@@ -130,14 +130,123 @@ class _EditGenrePickPageState extends ConsumerState<EditGenrePickPage> {
                               Color(0xffED8022)
                             ], // Biała czzionka dla przycisku
                           ),
-                          GradientText(
-                            'pomocnik',
-                            style: TextStyle(fontSize: 20,fontFamily: "Jaapokki",),
-                            colors: [
-                              Color(0xffD613E7),
-                              Color(0xffED8022)
-                            ], // Biała czzionka dla przycisku
-                          ),
+                          GestureDetector(
+                            onTap: (){
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      backgroundColor: Color(0xFF2E2E2E),
+                                      title: Text(
+                                        'Zasady gry',
+                                        style: TextStyle(
+                                            fontFamily: "Jaapokki",
+                                            color: Colors.white
+                                        ),
+                                      ),
+                                      content: SingleChildScrollView(
+                                        child: ListBody(
+                                          children: <Widget>[
+                                            Text(
+                                              'Gra polega na odgadywaniu haseł na czas. Oto kilka zasad:',
+                                              style: TextStyle(color: Colors.white,fontSize: 17),
+                                            ),
+                                            SizedBox(height: 10),
+                                            Row(
+                                              children: [
+                                                GradientText(
+                                                  '1. ',
+                                                  style: TextStyle(fontSize: 22, fontFamily: "Jaapokki"),
+                                                  colors: [Color(0xffD613E7), Color(0xffED8022)],
+                                                ),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Jedna gra składa się z 8 rund, czyli 8 haseł.',
+                                                    style: TextStyle(color: Colors.white,fontSize: 17),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 10,),
+                                            Row(
+                                              children: [
+                                                GradientText(
+                                                  '2. ',
+                                                  style: TextStyle(fontSize: 22, fontFamily: "Jaapokki"),
+                                                  colors: [Color(0xffD613E7), Color(0xffED8022)],
+                                                ),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Czas na odpowiedź zależy od wybranej kategorii gry.',
+                                                    style: TextStyle(color: Colors.white,fontSize: 17),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 10,),
+                                            Row(
+                                              children: [
+                                                GradientText(
+                                                  '3. ',
+                                                  style: TextStyle(fontSize: 22, fontFamily: "Jaapokki"),
+                                                  colors: [Color(0xffD613E7), Color(0xffED8022)],
+                                                ),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Za każdą poprawną odpowiedź kliknij raz, za każdą błędną - dwa razy.',
+                                                    style: TextStyle(color: Colors.white,fontSize: 17),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 10,),
+                                            Row(
+                                              children: [
+                                                GradientText(
+                                                  '4. ',
+                                                  style: TextStyle(fontSize: 21, fontFamily: "Jaapokki"),
+                                                  colors: [Color(0xffD613E7), Color(0xffED8022)],
+                                                ),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Na zakończenie gry wyświetlone zostanie podsumowanie wyników.',
+                                                    style: TextStyle(color: Colors.white,fontSize: 18),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      actionsAlignment: MainAxisAlignment.center,
+                                      actions: <Widget>[
+                                        TextButton(
+                                          child: GradientText(
+                                            'Super!',
+                                            style: TextStyle(fontSize: 20, fontFamily: "Jaapokki"),
+                                            colors: [
+                                              Color(0xffD613E7),
+                                              Color(0xffED8022)
+                                            ],
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  }
+                              );
+                            },
+                            child: GradientText(
+                              'pomocnik',
+                              style: TextStyle(fontSize: 20,fontFamily: "Jaapokki",),
+                              colors: [
+                                Color(0xffD613E7),
+                                Color(0xffED8022)
+                              ], // Biała czzionka dla przycisku
+                            ),
+                          )
                         ],
                       )),
                   Padding(
