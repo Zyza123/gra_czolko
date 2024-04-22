@@ -1,10 +1,13 @@
+import 'dart:typed_data';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gra_czolko/user_panels/profile_panel/add_genre.dart';
 import 'package:gra_czolko/user_panels/screens_panel.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:page_transition/page_transition.dart';
-
+import 'package:http/http.dart' as http;
 import '../../login_panels/start.dart';
 import '../../widgets/myElevatedButton.dart';
 import 'edit_genre.dart';
@@ -17,6 +20,51 @@ class CreatedPage extends ConsumerStatefulWidget {
 }
 
 class _CreatedPageState extends ConsumerState<CreatedPage> {
+
+  MobileScannerController cameraController = MobileScannerController();
+
+  String extractFileName(String url) {
+    Uri uri = Uri.parse(url);
+    String path = uri.path;  // Pobierz pełną ścieżkę z URL.
+
+    // Rozdziel ścieżkę na segmenty i wybierz ostatni, który jest nazwą pliku.
+    List<String> segments = path.split('2%2F');
+    return segments.last;
+  }
+  
+  Future<String> downloadJson(String url) async {
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return response.body; // Zwraca surowe dane JSON
+    } else {
+      throw Exception('Failed to download JSON data');
+    }
+  }
+
+// Funkcja do zapisywania JSON do Firebase Storage
+  Future<void> uploadJsonToFirebase(String json, String uid, String url) async {
+    final fileName = extractFileName(url);
+    final path = 'uzytkownicy/$uid/$fileName';
+
+    try {
+      final ref = FirebaseStorage.instance.ref().child(path);
+      final metadata = SettableMetadata(contentType: 'application/json');
+      await ref.putString(json, metadata: metadata);
+      print("JSON has been uploaded successfully.");
+    } catch (e) {
+      print("An error occurred while uploading JSON: $e");
+    }
+  }
+
+// Wywołanie funkcji
+  void handleQRCodeResult(String url, String uid) {
+    downloadJson(url).then((json) {
+      uploadJsonToFirebase(json, uid, url);
+    }).catchError((error) {
+      print("Error handling QR code result: $error");
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +153,33 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
                   ),
                 ),
               ),
+              SizedBox(height: 15,),
+              MyElevatedButton(
+                width: double.infinity,
+                height: 45,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ScannerPage()),
+                  ).then((barcodeValue) {
+                    if (barcodeValue != null) {
+                      handleQRCodeResult(barcodeValue, uid);
+                      setState(() {
+                        userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
+                      });
+                    }
+                  });
+                },
+                borderRadius: BorderRadius.circular(15),
+                child: Text(
+                  "Pobierz gatunek kodem QR",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 19,
+                    fontFamily: "Jaapokki",
+                  ),
+                ),
+              ),
               SizedBox(height: 25,),
               Align(
                 alignment: Alignment.topCenter,
@@ -183,5 +258,50 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
         ),
       ),
     );
+  }
+}
+
+class ScannerPage extends StatefulWidget {
+  @override
+  _ScannerPageState createState() => _ScannerPageState();
+}
+
+class _ScannerPageState extends State<ScannerPage> {
+  final MobileScannerController controller = MobileScannerController(facing: CameraFacing.back);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color(0xFF2E2E2E),
+      appBar: AppBar(title: const Text('Mobile Scanner')),
+      body: MobileScanner(
+        controller: controller,
+        onDetect: (capture) {
+          final List<Barcode> barcodes = capture.barcodes;
+          if (barcodes.isNotEmpty) {
+            final String? barcodeValue = barcodes.first.rawValue;
+            if (barcodeValue != null) {
+              String decodedValue = Uri.decodeComponent(barcodeValue);
+              debugPrint('Barcode found! $decodedValue');
+              Navigator.pop(context, decodedValue); // Return the barcode value // Return the decoded barcode value
+            }
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(controller.torchState.value == TorchState.off ? Icons.flash_off : Icons.flash_on),
+        onPressed: () {
+          setState(() {
+            controller.toggleTorch();  // Przełączanie stanu latarki
+          });
+        },
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();  // Zwalnianie zasobów kontrolera kamery
+    super.dispose();
   }
 }

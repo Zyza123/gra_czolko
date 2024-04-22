@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 class PlayPage extends StatefulWidget {
   final int type;
@@ -38,6 +38,7 @@ class _PlayPageState extends State<PlayPage> {
   late List<String> chosenWords;
   late List<int> points;
   int question = 0;
+  final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
   void setTime() {
     if (widget.type == 0 || widget.type == 1) {
@@ -204,6 +205,7 @@ class _PlayPageState extends State<PlayPage> {
     }
     return words;
   }
+  double? lastX;
 
   @override
   void initState() {
@@ -216,6 +218,45 @@ class _PlayPageState extends State<PlayPage> {
     chosenWords = chooseWatchwords();
     points = List<int>.filled(chosenWords.length, 0);
     initGame();
+    _streamSubscriptions.add(
+        accelerometerEventStream().listen((AccelerometerEvent event) {
+          if (lastX == null) {
+            lastX = event.x;
+          } else {
+            checkTilt(event.x);
+            //print("kat x: " + event.x.toString());
+            //print("kat y: " + event.y.toString());
+            //print("kat z: " + event.z.toString());
+          }
+        },
+          onError: (e) {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return const AlertDialog(
+                    title: Text("Czujnik nie znaleziony"),
+                    content: Text(
+                        "Wygląda na to, że twoje urządzenie nie obsługuje akcelerometru."),
+                  );
+                });
+          },
+          cancelOnError: true,)
+    );
+  }
+
+  void checkTilt(double currentX) {
+    if (currentX < 6.5) {
+      //print("Telefon przechylony!");
+      if (action == Action.guessing) {
+        setState(() {
+          action = Action.right;
+          points[question] = 1;
+        });
+        betweenQuestions();
+      }
+    }
+
+    lastX = currentX;
   }
 
   @override
@@ -237,6 +278,9 @@ class _PlayPageState extends State<PlayPage> {
     SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     action = Action.counting_start;
     _timer?.cancel();
+    for (final subscription in _streamSubscriptions) {
+      subscription.cancel();
+    }
     super.dispose();
   }
 

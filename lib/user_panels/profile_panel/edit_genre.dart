@@ -1,14 +1,13 @@
 import 'dart:convert';
-
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-
 import '../../login_panels/start.dart';
 import '../../widgets/myElevatedButton.dart';
 import '../screens_panel.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class EditGenre extends ConsumerStatefulWidget {
   final String genreName;
@@ -46,6 +45,69 @@ class _EditGenreState extends ConsumerState<EditGenre> {
     const Color(0xFFF39C12)
     // Dodaj więcej kolorów według potrzeb
   ];
+
+  void showQRCodeDialog(BuildContext context, String downloadUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Zeskanuj kod QR',
+            textAlign: TextAlign.center, // Wyśrodkowanie tekstu tytułu
+            style: TextStyle(
+              fontFamily: 'Jaapokki',
+              fontSize: 20,
+            ),
+          ),
+          alignment: Alignment.center,
+          backgroundColor: Color(0xffEEEEEE),
+          actionsAlignment: MainAxisAlignment.center,
+          content: SizedBox(
+            width: 225.0, // Określ szerokość
+            height: 225.0, // i wysokość dla QrImage
+            child: QrImageView(
+              data: downloadUrl,
+              version: QrVersions.auto,
+              size: 225.0, // Dostosuj rozmiar QrImage
+              gapless: false,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Zamknij',
+                style: TextStyle(
+                  fontFamily: 'Jaapokki',
+                  fontSize: 20,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String extractFileName(String url) {
+    Uri uri = Uri.parse(url);
+    String path = uri.path;  // Pobierz pełną ścieżkę z URL.
+
+    // Rozdziel ścieżkę na segmenty i wybierz ostatni, który jest nazwą pliku.
+    List<String> segments = path.split('2%2F');
+    return segments.last;
+  }
+  
+  Future<void> generateAndShowQR(BuildContext context,String uuid) async {
+    String path = 'uzytkownicy/$uuid/${widget.genreName.toLowerCase().replaceAll(' ', '')}.json';
+    String downloadUrl = await FirebaseStorage.instance.ref(path).getDownloadURL();
+    print("du: "+ downloadUrl);
+    print("du splitted: "+ extractFileName(downloadUrl));
+    if(mounted)showQRCodeDialog(context, downloadUrl);
+  }
 
   void changeColor(Color color) {
     setState(() => selectedColor = color);
@@ -424,17 +486,27 @@ class _EditGenreState extends ConsumerState<EditGenre> {
                       SizedBox(width: 10), // Dodaj odstęp między przyciskami
                       Expanded(
                         flex: 3, // Zajmuje 2/3 dostępnej przestrzeni
-                        child: MyElevatedButton(
-                          height: 45,
+                        child: ElevatedButton(
                           onPressed: () {
-                            if (_titleController.text.isNotEmpty &&
-                                _contentController.text.isNotEmpty) {
-                              processData(uid, oldFileName);
-                            }
+                            generateAndShowQR(context, uid);
                           },
-                          borderRadius: BorderRadius.circular(15),
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Color(0xff414141),
+                            // Kolor tekstu (i ikon) na przycisku
+                            textStyle: TextStyle(
+                              fontSize: 18,
+                              fontFamily: "Jaapokki",
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  15), // Zaokrąglenie rogów
+                            ),
+                            minimumSize: Size(double.infinity,
+                                45), // Minimalny rozmiar przycisku
+                          ),
                           child: Text(
-                            "Aktualizuj",
+                            "Udostępnij",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -444,6 +516,28 @@ class _EditGenreState extends ConsumerState<EditGenre> {
                         ),
                       ),
                     ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 10.0,right: 10,bottom: 10),
+                  child: MyElevatedButton(
+                    height: 45,
+                    width: double?.infinity,
+                    onPressed: () {
+                      if (_titleController.text.isNotEmpty &&
+                          _contentController.text.isNotEmpty) {
+                        processData(uid, oldFileName);
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(15),
+                    child: Text(
+                      "Aktualizuj",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontFamily: "Jaapokki",
+                      ),
+                    ),
                   ),
                 ),
 
