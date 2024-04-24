@@ -97,7 +97,7 @@ class _EditGenreState extends ConsumerState<EditGenre> {
     String path = uri.path;  // Pobierz pełną ścieżkę z URL.
 
     // Rozdziel ścieżkę na segmenty i wybierz ostatni, który jest nazwą pliku.
-    List<String> segments = path.split('2%2F');
+    List<String> segments = path.split('%2F');
     return segments.last;
   }
   
@@ -195,6 +195,7 @@ class _EditGenreState extends ConsumerState<EditGenre> {
       }
 
       if (mounted) {
+        print("test czy true");
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -455,8 +456,9 @@ class _EditGenreState extends ConsumerState<EditGenre> {
                                               fontSize: 18,
                                               color: Colors.white),
                                         ),
-                                        onPressed: () {
-                                          deleteGenre(uid, oldFileName);
+                                        onPressed: () async {
+                                          await deleteGenre(uid, oldFileName);
+                                          ref.invalidate(jsonUserGenreProvider(uid));
                                           Navigator.of(context).pop();
                                           Navigator.pop(context,true);
                                         },

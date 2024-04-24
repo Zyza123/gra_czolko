@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -25,31 +26,44 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
 
   String extractFileName(String url) {
     Uri uri = Uri.parse(url);
-    String path = uri.path;  // Pobierz pełną ścieżkę z URL.
-
-    // Rozdziel ścieżkę na segmenty i wybierz ostatni, który jest nazwą pliku.
-    List<String> segments = path.split('2%2F');
-    return segments.last;
+    List<String> segments = uri.pathSegments;
+    String pathofpath = segments.last;  // Zwraca ostatni segment ścieżki, który jest nazwą pliku.
+    return pathofpath.split('/').last;
   }
-  
-  Future<String> downloadJson(String url) async {
+
+  Future<Map<String, dynamic>> downloadJson(String url) async {
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
-      return response.body; // Zwraca surowe dane JSON
+      if (mounted) {
+        var utf8Data = utf8.decode(response.bodyBytes);  // Dekodowanie z UTF-8
+        var jsonResponse = json.decode(utf8Data) as Map<String, dynamic>;
+        //ScaffoldMessenger.of(context).showSnackBar(
+        //  SnackBar(content: Text('Surowe dane: ' + jsonResponse.toString())),
+        //);
+        print('Surowe dane: ' + jsonResponse.toString());
+        return jsonResponse;
+      }
+      return {};  // Zwraca pustą mapę, jeśli komponent nie jest zamontowany
     } else {
       throw Exception('Failed to download JSON data');
     }
   }
 
 // Funkcja do zapisywania JSON do Firebase Storage
-  Future<void> uploadJsonToFirebase(String json, String uid, String url) async {
+  Future<void> uploadJsonToFirebase(Map<String, dynamic> json, String uid, String url) async {
     final fileName = extractFileName(url);
+    //ScaffoldMessenger.of(context).showSnackBar(
+    //  SnackBar(content: Text('nazwa: '+ fileName)),
+    //);
     final path = 'uzytkownicy/$uid/$fileName';
+    //print("uid od nowego tel: " + uid);
+    //print("filename: " + fileName);
 
     try {
       final ref = FirebaseStorage.instance.ref().child(path);
+      print("fp: "+FirebaseStorage.instance.ref().child(path).fullPath);
       final metadata = SettableMetadata(contentType: 'application/json');
-      await ref.putString(json, metadata: metadata);
+      await ref.putString(jsonEncode(json), metadata: metadata);
       print("JSON has been uploaded successfully.");
     } catch (e) {
       print("An error occurred while uploading JSON: $e");
@@ -57,12 +71,13 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
   }
 
 // Wywołanie funkcji
-  void handleQRCodeResult(String url, String uid) {
-    downloadJson(url).then((json) {
-      uploadJsonToFirebase(json, uid, url);
-    }).catchError((error) {
+  Future<void> handleQRCodeResult(String url, String uid) async {
+    try {
+      var json = await downloadJson(url);
+      await uploadJsonToFirebase(json, uid, url);
+    } catch (error) {
       print("Error handling QR code result: $error");
-    });
+    }
   }
 
 
@@ -71,7 +86,7 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
     final uid = ref.watch(uidProvider);
     var userDataGenres = ref.watch(jsonUserGenreProvider(uid!));
 
-    void navigateToAddEditGenre(String fn) async {
+    Future<bool> navigateToAddEditGenre(String fn) async {
       if(fn.isEmpty){
         final result = await Navigator.push(
           context,
@@ -82,12 +97,13 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
               duration: Duration(milliseconds: 500),
               reverseDuration: Duration(milliseconds: 500)),
         );
-        if (result == true) {
-          // Tutaj odśwież dane, np. wywołując provider ponownie
-          setState(() {
-            userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
-          });
-        }
+        print("Result: "+result.toString());
+         if(result == true){
+           return true;
+         }
+         else{
+           return false;
+         }
       }
       else{
         final result = await Navigator.push(
@@ -99,11 +115,12 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
               duration: Duration(milliseconds: 500),
               reverseDuration: Duration(milliseconds: 500)),
         );
-        if (result == true) {
-          // Tutaj odśwież dane, np. wywołując provider ponownie
-          setState(() {
-            userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
-          });
+        print("Result: "+result.toString());
+        if(result == true){
+          return true;
+        }
+        else{
+          return false;
         }
       }
     }
@@ -140,8 +157,11 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
               MyElevatedButton(
                 width: double.infinity,
                 height: 45,
-                onPressed: () {
-                  navigateToAddEditGenre("");
+                onPressed: () async {
+                  await navigateToAddEditGenre("");
+                  setState(() {
+                    userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
+                  });
                 },
                 borderRadius: BorderRadius.circular(15),
                 child: Text(
@@ -161,12 +181,18 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => ScannerPage()),
-                  ).then((barcodeValue) {
+                  ).then((barcodeValue) async {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(barcodeValue)),
+                    );
+                    final fileName = extractFileName(barcodeValue);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('nazwa sh: '+ fileName)),
+                    );
                     if (barcodeValue != null) {
-                      handleQRCodeResult(barcodeValue, uid);
-                      setState(() {
-                        userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
-                      });
+                      await handleQRCodeResult(barcodeValue, uid);
+                      print("test");
+                      userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
                     }
                   });
                 },
@@ -210,8 +236,12 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
                       itemCount: dataGenres.length,
                       itemBuilder: (context, index) {
                         return InkWell(
-                          onTap: (){
-                            navigateToAddEditGenre(dataGenres[index]['Name']);
+                          onTap: ()async {
+                            await navigateToAddEditGenre(dataGenres[index]['Name']);
+                            print("TEST POWROTU");
+                            setState(() {
+                              userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
+                            });
                           },
                           child: Container(
                             height: 140,
@@ -262,6 +292,8 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
 }
 
 class ScannerPage extends StatefulWidget {
+  const ScannerPage({super.key});
+
   @override
   _ScannerPageState createState() => _ScannerPageState();
 }
@@ -281,9 +313,9 @@ class _ScannerPageState extends State<ScannerPage> {
           if (barcodes.isNotEmpty) {
             final String? barcodeValue = barcodes.first.rawValue;
             if (barcodeValue != null) {
-              String decodedValue = Uri.decodeComponent(barcodeValue);
-              debugPrint('Barcode found! $decodedValue');
-              Navigator.pop(context, decodedValue); // Return the barcode value // Return the decoded barcode value
+              debugPrint('Barcode found! $barcodeValue');
+              controller.stop();
+              Navigator.pop(context, barcodeValue); // Return the barcode value // Return the decoded barcode value
             }
           }
         },
