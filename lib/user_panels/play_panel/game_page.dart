@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -206,6 +207,7 @@ class _PlayPageState extends State<PlayPage> {
     return words;
   }
   double? lastX;
+  late AudioPlayer player;
 
   @override
   void initState() {
@@ -215,6 +217,7 @@ class _PlayPageState extends State<PlayPage> {
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
     ]);
+    player = AudioPlayer();
     chosenWords = chooseWatchwords();
     points = List<int>.filled(chosenWords.length, 0);
     initGame();
@@ -245,18 +248,29 @@ class _PlayPageState extends State<PlayPage> {
   }
 
   void checkTilt(double currentX) {
-    if (currentX < 6.5) {
+    if (currentX < 5.5) {
       //print("Telefon przechylony!");
       if (action == Action.guessing) {
-        setState(() {
+        setState(() async {
           action = Action.right;
           points[question] = 1;
+          await player.play(AssetSource("sounds/correct.mp3"));
         });
         betweenQuestions();
       }
     }
-
     lastX = currentX;
+  }
+
+  int calculateFontSize(String text) {
+    if (text.length <= 22) {
+      return 30;
+    } else {
+      int extraChars = text.length - 22;
+      int sizeDecrease = (extraChars / 5).floor() * 2;
+      int finalSize = 30 - sizeDecrease;
+      return finalSize > 10 ? finalSize : 10; // A minimum font size limit
+    }
   }
 
   @override
@@ -281,6 +295,7 @@ class _PlayPageState extends State<PlayPage> {
     for (final subscription in _streamSubscriptions) {
       subscription.cancel();
     }
+    player.dispose();
     super.dispose();
   }
 
@@ -289,20 +304,22 @@ class _PlayPageState extends State<PlayPage> {
     return Scaffold(
       body: SafeArea(
           child: InkWell(
-        onTap: () {
+        onTap: () async {
           if (action == Action.guessing) {
             setState(() {
               action = Action.right;
             });
+            await player.play(AssetSource("sounds/correct.mp3"));
             points[question] = 1;
             betweenQuestions();
           }
         },
-        onDoubleTap: () {
+        onDoubleTap: () async {
           if (action == Action.guessing) {
             setState(() {
               action = Action.wrong;
             });
+            await player.play(AssetSource("sounds/wrong.mp3"));
             betweenQuestions();
           }
         },
@@ -417,7 +434,7 @@ class _PlayPageState extends State<PlayPage> {
                                 chosenWords[index],
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 30.0,
+                                  fontSize: calculateFontSize(chosenWords[index]).toDouble(),
                                   fontWeight: points[index] == 1 ? FontWeight.bold : FontWeight.normal,
                                   color: points[index] == 1 ? Color(0xFF5CE600) : Color(0xFFE60000),
                                   shadows: [

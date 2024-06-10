@@ -182,16 +182,9 @@ class _CreatedPageState extends ConsumerState<CreatedPage> {
                     context,
                     MaterialPageRoute(builder: (context) => ScannerPage()),
                   ).then((barcodeValue) async {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(barcodeValue)),
-                    );
                     final fileName = extractFileName(barcodeValue);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('nazwa sh: '+ fileName)),
-                    );
                     if (barcodeValue != null) {
                       await handleQRCodeResult(barcodeValue, uid);
-                      print("test");
                       userDataGenres = ref.refresh(jsonUserGenreProvider(uid));
                     }
                   });

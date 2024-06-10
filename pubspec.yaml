@@ -58,6 +58,7 @@ dependencies:
   sensors_plus: ^4.0.2
   qr_flutter: ^4.1.0
   mobile_scanner: ^4.0.1
+  audioplayers: ^5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -102,6 +103,8 @@ flutter:
     - assets/user_panels/user128.png
     - assets/user_panels/profile_pic.jpg
     - assets/animations/anim_login.json
+    - assets/sounds/wrong.mp3
+    - assets/sounds/correct.mp3
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
