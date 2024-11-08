@@ -207,6 +207,8 @@ class _PlayPageState extends State<PlayPage> {
     return words;
   }
   double? lastX;
+  double? lastY;
+  double? lastZ;
   late AudioPlayer player;
 
   @override
@@ -225,8 +227,10 @@ class _PlayPageState extends State<PlayPage> {
         accelerometerEventStream().listen((AccelerometerEvent event) {
           if (lastX == null) {
             lastX = event.x;
+            lastY = event.y;
+            lastZ = event.z;
           } else {
-            checkTilt(event.x);
+            checkTilt(event.x,event.y,event.z);
             //print("kat x: " + event.x.toString());
             //print("kat y: " + event.y.toString());
             //print("kat z: " + event.z.toString());
@@ -247,20 +251,25 @@ class _PlayPageState extends State<PlayPage> {
     );
   }
 
-  void checkTilt(double currentX) {
-    if (currentX < 5.5) {
-      //print("Telefon przechylony!");
-      if (action == Action.guessing) {
-        setState(() async {
-          action = Action.right;
-          points[question] = 1;
-          await player.play(AssetSource("sounds/correct.mp3"));
-        });
-        betweenQuestions();
+  void checkTilt(double currentX, double currentY, double currentZ) {
+    if ((currentY.abs() < thresholdY) && (currentZ.abs() < thresholdZ)) {
+      if (currentX < 5.5) {
+        // Telefon przechylony!
+        if (action == Action.guessing) {
+          setState(() async {
+            action = Action.right;
+            points[question] = 1;
+            await player.play(AssetSource("sounds/correct.mp3"));
+          });
+          betweenQuestions();
+        }
       }
     }
     lastX = currentX;
   }
+
+  double thresholdY = 1.0; // próg, powyżej którego ignorujesz zmianę
+  double thresholdZ = 1.0;
 
   int calculateFontSize(String text) {
     if (text.length <= 22) {
